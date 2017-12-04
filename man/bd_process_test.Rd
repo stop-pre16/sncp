@@ -22,7 +22,11 @@ bd_process_test(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta,
 
 \item{n_it}{number of iterations to run MCMC}
 
+\item{window_hw}{half-width of random walk cube for proposing new cluster center locations}
+
 \item{df_iw_prior}{degrees of freedom for inverse-wishart prior on dispersion matrices}
+
+\item{df_iw_prop}{degrees of freedom for inverse-wishart proposal on dispersion matrices}
 
 \item{sigma_prior}{prior for dispersion matrices sigma}
 
@@ -41,8 +45,6 @@ bd_process_test(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta,
 \item{max_bd_events}{max events (births + deaths) to allow at each iteration of BD-MCMC}
 
 \item{max_bd_vt}{max ammount of virtual time to spend in BD process at each BD_MCMC iteration}
-
-\item{df_iw_prior}{degrees of freedom for inverse-wishart proposal on dispersion matrices}
 }
 \value{
 Returns a named list posterior samples of model parameters

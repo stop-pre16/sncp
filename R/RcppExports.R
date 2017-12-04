@@ -15,8 +15,9 @@
 #' @param sd_prop_alpha std. dev. for random walk proposal for log_alphas
 #' @param beta prior estimate of homogeneous Poisson intensity function for cluster centers
 #' @param n_it number of iterations to run MCMC
+#' @param window_hw half-width of random walk cube for proposing new cluster center locations
 #' @param df_iw_prior degrees of freedom for inverse-wishart prior on dispersion matrices
-#' @param df_iw_prior degrees of freedom for inverse-wishart proposal on dispersion matrices
+#' @param df_iw_prop degrees of freedom for inverse-wishart proposal on dispersion matrices
 #' @param sigma_prior prior for dispersion matrices sigma
 #' @param lung_data matrix that contains coordinates of all points within 2d slice of lung CT that is lung tissue
 #' @param var_mu_alpha prior variance on mu_alpha
