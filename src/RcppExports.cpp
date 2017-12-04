@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // bd_process_test
 Rcpp::List bd_process_test(arma::mat obs_points, double mean_mu_alpha, double sd_log_alpha, double sd_prop_alpha, double beta, int n_it, double window_hw, int df_iw_prior, int df_iw_prop, arma::mat sigma_prior, arma::mat lung_data, double var_mu_alpha, double pen_dist, double pen_val, int n_cent_init, double prior_n_cent, int max_bd_events, double max_bd_vt);
-RcppExport SEXP _sncp_bd_process_test(SEXP obs_pointsSEXP, SEXP mean_mu_alphaSEXP, SEXP sd_log_alphaSEXP, SEXP sd_prop_alphaSEXP, SEXP betaSEXP, SEXP n_itSEXP, SEXP window_hwSEXP, SEXP df_iw_priorSEXP, SEXP df_iw_propSEXP, SEXP sigma_priorSEXP, SEXP lung_dataSEXP, SEXP var_mu_alphaSEXP, SEXP pen_distSEXP, SEXP pen_valSEXP, SEXP n_cent_initSEXP, SEXP prior_n_centSEXP, SEXP max_bd_eventsSEXP, SEXP max_bd_vtSEXP) {
+RcppExport SEXP sncp_bd_process_test(SEXP obs_pointsSEXP, SEXP mean_mu_alphaSEXP, SEXP sd_log_alphaSEXP, SEXP sd_prop_alphaSEXP, SEXP betaSEXP, SEXP n_itSEXP, SEXP window_hwSEXP, SEXP df_iw_priorSEXP, SEXP df_iw_propSEXP, SEXP sigma_priorSEXP, SEXP lung_dataSEXP, SEXP var_mu_alphaSEXP, SEXP pen_distSEXP, SEXP pen_valSEXP, SEXP n_cent_initSEXP, SEXP prior_n_centSEXP, SEXP max_bd_eventsSEXP, SEXP max_bd_vtSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -36,7 +36,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_sncp_bd_process_test", (DL_FUNC) &_sncp_bd_process_test, 18},
+    {"sncp_bd_process_test", (DL_FUNC) &sncp_bd_process_test, 18},
     {NULL, NULL, 0}
 };
 
