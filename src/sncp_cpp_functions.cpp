@@ -808,8 +808,8 @@ Rcpp::List bd_process_test(arma::mat obs_points,
     //  Updating beta
     beta_tmp =  std::fabs(beta_it + R::runif(-.0005, .0005));
     ll_prop = arma::sum((arma::log(PP_lik_cur + beta_tmp)));
-    mh_log = ll_prop - beta_tmp * LM_slice + R::dgamma(beta_tmp, 1.0, 1.0, 1) -
-      (ll_cur - beta_it * LM_slice + R::dgamma(beta_it, 1.0, 1.0, 1));
+    mh_log = ll_prop - beta_tmp * LM_slice + R::dgamma(beta_tmp, 0.01, 1.0 / 0.01, 1) -
+      (ll_cur - beta_it * LM_slice + R::dgamma(beta_it, 0.01, 1.0 / 0.01, 1));
     if(R::runif(0, 1) < exp(mh_log)){
       ////Rcpp::Rcout <<"MH accept" << std::endl;
       ll_cur = ll_prop;
