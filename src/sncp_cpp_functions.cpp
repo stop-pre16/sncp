@@ -496,6 +496,162 @@ void update_node_values(Node *head,
   }
 }
 
+/*
+ * Functions to do version with uniform dispersoin density
+ */
+
+arma::rowvec fast_eig2d(const arma::mat &A) {
+  arma::rowvec ret(2);
+  double T = arma::trace(A);
+  double B = arma::det(A);
+  double C = sqrt((pow(T, 2) / 4.0) - B);
+  ret(0) = (T / 2.0) + C;
+  ret(1) = (T / 2.0) - C;
+  return (ret);
+}
+
+arma::vec mahaInt_bin(const arma::mat & X,
+                      const arma::vec & mu,
+                      const arma::mat & sigma,
+                      const unsigned int ncores,
+                      const bool isChol = false){
+  using namespace arma;
+
+  // Some sanity checks
+  //if(ncores < 0) Rcpp::stop("ncores has to be positive.");
+  if(mu.n_elem != sigma.n_cols) Rcpp::stop("The mean vector has a different dimensions from the covariance matrix.");
+  if(X.n_cols != sigma.n_cols)  Rcpp::stop("The number of columns of X is different from the dimension of the covariance matrix.");
+
+  // Calculate transposed cholesky dec. unless sigma is alread a cholesky dec.
+  mat cholDec;
+  if( isChol == false ) {
+    cholDec = trimatl(chol(sigma).t());
+  }
+  else{
+    cholDec = trimatl(sigma.t());
+    if(any(cholDec.diag() <= 0.0))  Rcpp::stop("The supplied cholesky decomposition has values <= 0.0 on the main diagonal.");
+  }
+
+  vec D = cholDec.diag();
+
+  vec out(X.n_rows);
+  uvec out2(X.n_rows);
+
+#ifdef _OPENMP
+#pragma omp parallel num_threads(ncores) if(ncores > 1)
+{
+#endif
+
+  // Declaring some private variables
+  uint32_t d = X.n_cols;
+  uint32_t n = X.n_rows;
+
+  vec tmp(d);
+
+  double acc;
+  uint32_t icol, irow, ii;
+
+  // For each of the "n" random vectors, forwardsolve the corresponding linear system.
+  // Forwardsolve because I'm using the lower triangle Cholesky.
+#ifdef _OPENMP
+#pragma omp for schedule(static)
+#endif
+  for(icol = 0; icol < n; icol++)
+  {
+
+    for(irow = 0; irow < d; irow++)
+    {
+      acc = 0.0;
+
+      for(ii = 0; ii < irow; ii++) acc += tmp.at(ii) * cholDec.at(irow, ii);
+
+      tmp.at(irow) = ( X.at(icol, irow) - mu.at(irow) - acc ) / D.at(irow);
+    }
+
+    out.at(icol) = sum(square(tmp));
+  }
+
+#ifdef _OPENMP
+}
+#endif
+double area = arma::prod(arma::sqrt(fast_eig2d(sigma))) * M_1_PI;
+out2 = out <= 1;
+return (area * (arma::conv_to<arma::vec>::from(out2)));
+}
+
+
+// Constructor, only for the 1st Node
+void initNode_u(struct Node *head,
+              const arma::rowvec &loc,
+              const double &mu_alpha,
+              const double &sd_log_alpha,
+              const arma::mat &sigma_prior,
+              const int &df_iw_prior,
+              const arma::mat &obs_points){
+  //head->data = n;
+  head -> next = NULL;
+  head -> loc = loc;
+  head -> log_alpha = R::rnorm(mu_alpha, sd_log_alpha);
+  head -> alpha = exp(head -> log_alpha);
+  head -> sigma = riwish_arma(df_iw_prior, (df_iw_prior-3) * sigma_prior);
+  //head -> mvn_dens = dmvnrm_vec_arma_1f(obs_points, head -> loc.t(), head -> sigma);
+  head -> mvn_dens = mahaInt_bin(obs_points, head -> loc.t(), head -> sigma, 1, false);
+  head -> n_cent_close = 0;
+}
+
+// Apending nodes to end of list
+void addNode_u(struct Node *head,
+             const arma::rowvec &loc,
+             const double &mu_alpha,
+             const double &sd_log_alpha,
+             const arma::mat &sigma_prior,
+             const int &df_iw_prior,
+             const arma::mat &obs_points){
+  Node *newNode = new Node;
+  //newNode->data = n;
+  newNode -> loc = loc;
+  newNode -> log_alpha = R::rnorm(mu_alpha, sd_log_alpha);
+  newNode -> alpha = exp(newNode -> log_alpha);
+  newNode -> sigma = riwish_arma(df_iw_prior, (df_iw_prior-3) * sigma_prior);
+  //newNode -> mvn_dens = dmvnrm_vec_arma_1f(obs_points, newNode -> loc.t(), newNode -> sigma);
+  newNode -> mvn_dens = mahaInt_bin(obs_points, newNode -> loc.t(), newNode -> sigma, 1, false);
+  newNode -> n_cent_close = 0;
+  newNode->next = NULL;
+
+  Node *cur = head;
+  while(cur) {
+    if(cur->next == NULL) {
+      cur->next = newNode;
+      return;
+    }
+    cur = cur->next;
+  }
+
+}
+
+//   Adding new node to the front of the LL
+void insertFront_u(struct Node **head,
+                 const arma::rowvec &loc,
+                 const double &mu_alpha,
+                 const double &sd_log_alpha,
+                 const arma::mat &sigma_prior,
+                 const int &df_iw_prior,
+                 const arma::mat &obs_points){
+  Node *newNode = new Node;
+  newNode -> loc = loc;
+  newNode -> log_alpha = R::rnorm(mu_alpha, sd_log_alpha);
+  newNode -> alpha = exp(newNode -> log_alpha);
+  newNode -> sigma = riwish_arma(df_iw_prior, (df_iw_prior-3) * sigma_prior);
+  //newNode -> mvn_dens = dmvnrm_vec_arma_1f(obs_points, newNode -> loc.t(), newNode -> sigma);
+  newNode -> mvn_dens = mahaInt_bin(obs_points, newNode -> loc.t(), newNode -> sigma, 1, false);
+  newNode -> n_cent_close = 0;
+  newNode->next = *head;
+
+  *head = newNode;
+}
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /*
@@ -849,4 +1005,354 @@ Rcpp::List bd_process_test(arma::mat obs_points,
                             Rcpp::Named("n_cent_sample") = sample_n_cent,
                             Rcpp::Named("cum_int_sample") = sample_cum_int);
 }
+///////////////////////////////////////////////////////////////////////////////////////
+/////     Doing a version with a uniform dispersion density instead      //////////////
+///////////////////////////////////////////////////////////////////////////////////////
 
+//' Bayesian SNCP fit using BD-MCMC
+//'
+//' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
+//'
+//' This is where you write details on the function...
+//'
+//' more details....
+//'
+//' @param obs_points matrix of coordinates for observed points
+//' @param mean_mu_alpha prior mean for mu_alpha
+//' @param sd_log_alpha prior std. dev. for log_alphas
+//' @param sd_prop_alpha std. dev. for random walk proposal for log_alphas
+//' @param beta prior estimate of homogeneous Poisson intensity function for cluster centers
+//' @param n_it number of iterations to run MCMC
+//' @param window_hw half-width of random walk cube for proposing new cluster center locations
+//' @param df_iw_prior degrees of freedom for inverse-wishart prior on dispersion matrices
+//' @param df_iw_prop degrees of freedom for inverse-wishart proposal on dispersion matrices
+//' @param sigma_prior prior for dispersion matrices sigma
+//' @param lung_data matrix that contains coordinates of all points within 2d slice of lung CT that is lung tissue
+//' @param var_mu_alpha prior variance on mu_alpha
+//' @param pen_dist distance for strauss process repulsion
+//' @param pen_val vaule between 0 and 1 that is the penalty for 2 cluster centers being within pen_dist of each other
+//' @param n_cent_init number of clusters to start with
+//' @param prior_n_cent prior value for number of clusters
+//' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
+//' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
+//'
+//' @author Brian Vestal
+//'
+//' @return
+//' Returns a named list posterior samples of model parameters
+//'
+//' @export
+// [[Rcpp::export]]
+
+Rcpp::List bd_process_test_unif(arma::mat obs_points,
+                                double mean_mu_alpha,
+                                double sd_log_alpha,
+                                double sd_prop_alpha,
+                                double beta,
+                                int n_it,
+                                double window_hw,
+                                int df_iw_prior,
+                                int df_iw_prop,
+                                arma::mat sigma_prior,
+                                arma::mat lung_data,
+                                double var_mu_alpha,
+                                double pen_dist,
+                                double pen_val,
+                                int n_cent_init,
+                                double prior_n_cent,
+                                int max_bd_events,
+                                double max_bd_vt){
+  int i, j, xdim = obs_points.n_cols, n_cent_it, idx_birth, n_points = obs_points.n_rows;
+  double ll_cur, ll_prop, mh_log, log_alpha_prop, beta_it = beta, mu_alpha_it, log_pen_val = log(pen_val);
+  arma::vec log_alpha_it, beta_sample(n_it), mu_alpha_sample(n_it), xwin(2), ywin(2);
+  //arma::mat log_alpha_sample(n_it, n_cent);
+  arma::umat P_mat;
+  arma::uvec P_vec_tmp, bd_idx_inf;
+  arma::rowvec center_prop;
+  arma::mat centers_it(n_cent_init, xdim), L_mat, L_mat_tmp, centers_tmp, sigma_tmp, L_mat_tmp_BD;
+  arma::field<arma::mat> centers_sample(n_it, 1), log_alpha_sample(n_it, 1);
+  arma::cube sigma_cube_it(xdim, xdim, n_cent_init);
+  arma::field<arma::cube> sigma_sample(n_it, 1);
+  double beta_tmp, var_log_alpha = pow(sd_log_alpha, 2), mean_mu_post, var_mu_post, LM_slice = lung_data.n_rows;
+  arma::vec lung_data_idx = arma::linspace(0, LM_slice - 1, LM_slice), BD_probs = arma::ones(LM_slice) / LM_slice;
+  arma::vec idx_centers_init, DR_vec(n_cent_init), log_alpha_tmp_BD, PP_lik_cur, PP_lik_prop, L_vec_prop, bd_prob_vec;
+  double log_bd_surf = log(BD_probs(0)), DR_tot, prior_n_cent_log = log(prior_n_cent / LM_slice);
+  bool bd_flag;
+  double bd_vt, BR_tot = 1;
+  int n_bd_events, bd_kill_idx;
+  struct Node *head = new Node;
+  Node *kill_node;
+  arma::vec sample_n_cent(n_it), sample_cum_int(n_it);
+  //Rcpp::Rcout << "Initialization of variables OK" << std::endl;
+
+  xwin(0) = lung_data.col(0).min();
+  xwin(1) = lung_data.col(0).max();
+  ywin(0) = lung_data.col(1).min();
+  ywin(1) = lung_data.col(1).max();
+
+  idx_centers_init = RcppArmadillo::sample(lung_data_idx, n_cent_init, false, BD_probs);
+  //Rcpp::Rcout << "idx_centers_init = " << idx_centers_init << std::endl;
+  //Rcpp::Rcout << "Sample for initial center_idx OK" << std::endl;
+  mu_alpha_it = R::rnorm(mean_mu_alpha, sqrt(var_mu_alpha));
+  initNode_u(head, lung_data.row(idx_centers_init(0)), mu_alpha_it, sd_log_alpha, sigma_prior, df_iw_prior, obs_points);
+  for(i = 1; i < n_cent_init; i++){
+    addNode_u(head, lung_data.row(idx_centers_init(i)), mu_alpha_it, sd_log_alpha, sigma_prior, df_iw_prior, obs_points);
+  }
+  update_Ps(head, n_cent_init, pen_dist, xdim);
+  //log_alpha_it = arma::randn(n_cent_init) * sd_log_alpha + mean_mu_alpha;
+
+
+  sigma_cube_it = get_sigmas(head, n_cent_init, xdim);
+  log_alpha_it = get_log_alphas(head, n_cent_init);
+  centers_it = get_centers(head, n_cent_init, xdim);
+
+  //Rcpp::Rcout << "centers_it = " << centers_it << std::endl;
+  //Rcpp::Rcout << "log_alphas_it = " << log_alpha_it << std::endl;
+  //Rcpp::Rcout << "sigma_cube_it = " << sigma_cube_it << std::endl;
+
+  sigma_sample(0, 0) = sigma_cube_it;
+  log_alpha_sample(0, 0) = log_alpha_it;
+  centers_sample(0, 0) = centers_it;
+  mu_alpha_sample(0) = mu_alpha_it;
+  beta_sample(0) = beta_it;
+  sample_n_cent(0) = n_cent_init;
+  sample_cum_int(0) = arma::sum(arma::exp(log_alpha_it)) + beta_it * LM_slice;
+
+  //Rcpp::Rcout << "Storage of initials OK" << std::endl;
+  //L_mat = dmvnrm_vec_arma_cube(obs_points, centers_it, sigma_cube_it);
+  //Rcpp::Rcout << "L_mat creation OK" << std::endl;
+  PP_lik_cur = calc_PP_lik_vec(head);
+  ll_cur = arma::sum((arma::log(PP_lik_cur + beta_it)));
+  //Rcpp::Rcout << "ll_cur OK" << std::endl;
+  //P_mat = P_mat_gen1(centers_it, pen_dist);
+  //Rcpp::Rcout << "P_mat OK" << std::endl;
+
+  //  Initial BD death rates
+  DR_vec = calc_DR_vec(head, n_cent_init, PP_lik_cur, ll_cur, beta_it, n_points, log_bd_surf, log_pen_val, prior_n_cent_log);
+
+  //Rcpp::Rcout << "Initial death rates OK" << std::endl;
+  //Rcpp::Rcout << "DR_vec = " << DR_vec << std::endl;
+
+  n_cent_it = n_cent_init;
+
+  //   Birth-death process:
+  for(i = 1; i < n_it; ++i){
+    bd_flag = true;
+    bd_vt = 0;
+    n_bd_events = 0;
+    while(bd_flag & (n_bd_events < max_bd_events)){
+      //Rcpp::Rcout << "n_bd_events = " << n_bd_events << std::endl;
+      //Rcpp::Rcout << "centers_it = " << centers_it << std::endl;
+      //Rcpp::Rcout << "log_alpha_it = " << log_alpha_it << std::endl;
+      //display(head);
+      DR_tot = arma::sum(DR_vec);
+
+      //Rcpp::Rcout << "DR_tot = " << DR_tot << std::endl;
+      //Rcpp::Rcout << "DR_vec = " << DR_tot << std::endl;
+      if(DR_vec.has_inf()){
+        bd_idx_inf = arma::find_nonfinite(DR_vec);
+        //Rcpp::Rcout << "Infinite DR, bd_idx_inf = " << bd_idx_inf << std::endl;
+        if(bd_idx_inf.n_elem < 2){
+          bd_kill_idx = bd_idx_inf(0);
+        }
+        else{
+          bd_kill_idx = RcppArmadillo::sample(bd_idx_inf, 1, false)(0);
+        }
+
+        kill_node = searchNode(head, bd_kill_idx);
+        if(n_cent_it < 2){
+          PP_lik_cur.zeros();
+        }
+        else{
+          PP_lik_cur -= kill_node -> alpha * kill_node -> mvn_dens;
+        }
+        ll_cur = arma::sum((arma::log(PP_lik_cur + beta_it)));
+        deleteNode(&head, kill_node);
+        n_bd_events++;
+        n_cent_it--;
+        //Rcpp::Rcout << "Node killed succesfully (inf)" << std::endl;
+      }
+      else{
+        bd_vt += R::rexp(1.0 / (BR_tot + DR_tot));
+        //Rcpp::Rcout << "bd_vt = " << bd_vt << std::endl;
+        if(bd_vt < max_bd_vt){
+          if(R::runif(0, BR_tot + DR_tot) < BR_tot){
+            idx_birth = RcppArmadillo::sample(lung_data_idx, 1, false)(0);
+            insertFront_u(&head, lung_data.row(idx_birth), mu_alpha_it, sd_log_alpha, sigma_prior, df_iw_prior, obs_points);
+            PP_lik_cur += (head -> alpha) * (head -> mvn_dens);
+            ll_cur = arma::sum((arma::log(PP_lik_cur + beta_it)));
+            n_bd_events++;
+            n_cent_it++;
+            //Rcpp::Rcout << "Node birthed succesfully" << std::endl;
+          }
+          else{
+            bd_prob_vec = DR_vec / DR_tot;
+            bd_kill_idx = RcppArmadillo::sample(arma::linspace(0, n_cent_it - 1, n_cent_it), 1, false, bd_prob_vec)(0);
+            kill_node = searchNode(head, bd_kill_idx);
+            if(n_cent_it < 2){
+              PP_lik_cur.zeros();
+            }
+            else{
+              PP_lik_cur -= kill_node -> alpha * kill_node -> mvn_dens;
+            }
+            ll_cur = arma::sum((arma::log(PP_lik_cur + beta_it)));
+            deleteNode(&head, kill_node);
+            n_bd_events++;
+            n_cent_it--;
+            //Rcpp::Rcout << "Node killed succesfully" << std::endl;
+          }
+        }
+        else{
+          bd_flag = false;
+        }
+      }
+      if(bd_flag){
+        if(n_cent_it < 1){
+          DR_vec.set_size(1);
+          DR_vec(0) = 0;
+        }
+        else{
+          update_Ps(head, n_cent_it, pen_dist, xdim);
+          //Rcpp::Rcout << "Ps updated" << std::endl;
+          DR_vec.set_size(n_cent_it);
+          DR_vec = calc_DR_vec(head, n_cent_it, PP_lik_cur, ll_cur, beta_it, n_points, log_bd_surf, log_pen_val, prior_n_cent_log);
+          //Rcpp::Rcout << "DRs updated succesfully" << std::endl;
+        }
+      }
+    }
+
+    //Rcpp::Rcout << "Left BD Process" << std::endl;
+
+    L_mat.set_size(n_points, n_cent_it);
+    L_mat = get_L_mat(head, n_cent_it, n_points);
+
+    log_alpha_it.set_size(n_cent_it);
+    log_alpha_it = get_log_alphas(head, n_cent_it);
+
+    centers_it.set_size(n_cent_it, xdim);
+    centers_it = get_centers(head, n_cent_it, xdim);
+    P_mat = P_mat_gen1(centers_it, pen_dist);
+
+    sigma_cube_it.set_size(xdim, xdim, n_cent_it);
+    sigma_cube_it = get_sigmas(head, n_cent_it, xdim);
+
+    //PP_lik_cur = calc_PP_lik_vec(head);
+    //ll_cur = arma::sum(arma::log(PP_lik_cur + beta_it));
+    for(j = 0; j < n_cent_it; j++){
+      //log_alpha_temp = log_alpha_it;
+      log_alpha_prop = R::rnorm(log_alpha_it(j), sd_prop_alpha);
+      //log_alpha_temp(j) = log_alpha_prop;
+      PP_lik_prop = PP_lik_cur + (exp(log_alpha_prop) - exp(log_alpha_it(j))) * L_mat.col(j);
+      ll_prop = arma::sum((arma::log(PP_lik_prop + beta_it)));
+      mh_log = ll_prop - ll_cur -
+        exp(log_alpha_prop) + exp(log_alpha_it(j)) +
+        (1.0/(2.0 * pow(sd_log_alpha, 2))) * (pow(log_alpha_it(j) - mean_mu_alpha, 2) - pow(log_alpha_prop - mean_mu_alpha, 2));
+      if(R::runif(0, 1) < exp(mh_log)){
+        //Rcpp::Rcout <<"MH accept" << std::endl;
+        PP_lik_cur = PP_lik_prop;
+        ll_cur = ll_prop;
+        log_alpha_it(j) = log_alpha_prop;
+      }
+    }
+
+    // Doing center location MH steps
+    for(j = 0; j < n_cent_it; j++){
+      center_prop = centers_it.row(j);
+      center_prop(0) += R::runif(-window_hw, window_hw);
+      center_prop(1) += R::runif(-window_hw, window_hw);
+      if(center_prop(0) < xwin(1) & center_prop(0) > xwin(0) &
+         center_prop(1) < ywin(1) & center_prop(1) > ywin(0)){
+        //L_mat_tmp = L_mat;
+        //L_mat_tmp.col(j) = dmvnrm_vec_arma_1f(obs_points, center_prop.t(), sigma_cube_it.slice(j));
+        //L_vec_prop = dmvnrm_vec_arma_1f(obs_points, center_prop.t(), sigma_cube_it.slice(j));
+        L_vec_prop = mahaInt_bin(obs_points, center_prop.t(), sigma_cube_it.slice(j), 1, false);
+        P_vec_tmp = P_mat_gen2(centers_it, center_prop, pen_dist);
+        //P_vec_tmp.shed_row(j);
+        PP_lik_prop = PP_lik_cur + exp(log_alpha_it(j)) * (L_vec_prop - L_mat.col(j));
+        ll_prop = arma::sum((arma::log(PP_lik_prop + beta_it)));
+        mh_log = ll_prop - ll_cur + (arma::sum(P_vec_tmp) - P_vec_tmp(j) - (arma::sum(P_mat.col(j)) - 1)) * log_pen_val;
+        if(R::runif(0, 1) < exp(mh_log)){
+          PP_lik_cur = PP_lik_prop;
+          ll_cur = ll_prop;
+          centers_it.row(j) = center_prop;
+          L_mat.col(j) = L_vec_prop;
+          P_mat = P_mat_gen1(centers_it, pen_dist);
+        }
+      }
+    }
+
+    // Doing sigma matrix MH steps
+    for(j = 0; j < n_cent_it; j++){
+      sigma_tmp = riwish_arma(df_iw_prop, (df_iw_prop - 3.0) * sigma_cube_it.slice(j));
+      /*
+       log(diwish(W = sigma_mat_it[[j]], v = df_inv_wish_prior,
+       S = (df_inv_wish_prior - 3) * S_mat_prior)) + ## Prior
+       log(diwish(W = sigma_prop_j, v = df_inv_wish_prop,
+       S = (df_inv_wish_prop - 3) * sigma_mat_it[[j]]))
+       */
+      //L_mat_tmp = L_mat;
+      //L_mat_tmp.col(j) = dmvnrm_vec_arma_1f(obs_points, centers_it.row(j).t(), sigma_tmp);
+      //L_vec_prop = dmvnrm_vec_arma_1f(obs_points, centers_it.row(j).t(), sigma_tmp);
+      L_vec_prop = mahaInt_bin(obs_points, centers_it.row(j).t(), sigma_tmp, 1, false);
+      PP_lik_prop = PP_lik_cur + exp(log_alpha_it(j)) * (L_vec_prop - L_mat.col(j));
+      ll_prop = arma::sum((arma::log(PP_lik_prop + beta_it)));
+      mh_log = ll_prop +
+        log(diwish_arma(sigma_tmp, df_iw_prior, (df_iw_prior - 3.0) * sigma_prior)) +
+        log(diwish_arma(sigma_cube_it.slice(j), df_iw_prop, (df_iw_prop - 3.0) * sigma_tmp)) -
+        ll_cur -
+        log(diwish_arma(sigma_cube_it.slice(j), df_iw_prior, (df_iw_prior - 3.0) * sigma_prior)) -
+        log(diwish_arma(sigma_tmp, df_iw_prop, (df_iw_prop - 3.0) * sigma_cube_it.slice(j)));
+      if(R::runif(0, 1) < exp(mh_log)){
+        ////Rcpp::Rcout <<"MH accept" << std::endl;
+        PP_lik_cur = PP_lik_prop;
+        ll_cur = ll_prop;
+        L_mat.col(j) = L_vec_prop;
+        sigma_cube_it.slice(j) = sigma_tmp;
+        //L_mat = L_mat_tmp;
+      }
+    }
+
+    //  Updating beta
+    beta_tmp =  std::fabs(beta_it + R::runif(-.0005, .0005));
+    ll_prop = arma::sum((arma::log(PP_lik_cur + beta_tmp)));
+    mh_log = ll_prop - beta_tmp * LM_slice + R::dgamma(beta_tmp, 0.01, 1.0 / 0.01, 1) -
+      (ll_cur - beta_it * LM_slice + R::dgamma(beta_it, 0.01, 1.0 / 0.01, 1));
+    if(R::runif(0, 1) < exp(mh_log)){
+      ////Rcpp::Rcout <<"MH accept" << std::endl;
+      ll_cur = ll_prop;
+      beta_it = beta_tmp;
+    }
+
+    //  Updating mu_alpha
+
+    mean_mu_post = ((mean_mu_alpha / var_mu_alpha) + (arma::sum(log_alpha_it) / var_log_alpha)) /
+      ((1.0 / var_mu_alpha) + (n_cent_it / var_log_alpha));
+    var_mu_post = 1.0 / ((1.0 / var_mu_alpha) + (n_cent_it / var_log_alpha));
+    mu_alpha_it = R::rnorm(mean_mu_post, sqrt(var_mu_post));
+
+    //Putting new values in the linked list
+    update_node_values(head, centers_it, log_alpha_it, sigma_cube_it, L_mat);
+
+    //  Updating death rates
+    if(n_cent_it > 0){
+      DR_vec = calc_DR_vec(head, n_cent_it, PP_lik_cur, ll_cur, beta_it, n_points, log_bd_surf, log_pen_val, prior_n_cent_log);
+    }
+
+    // Storing MCMC samples
+    centers_sample(i, 0) = centers_it;
+    log_alpha_sample(i, 0) = log_alpha_it.t();
+    sigma_sample(i, 0) = sigma_cube_it;
+    beta_sample(i) = beta_it;
+    mu_alpha_sample(i) = mu_alpha_it;
+    sample_n_cent(i) = n_cent_it;
+    sample_cum_int(i) = arma::sum(arma::exp(log_alpha_it)) + beta_it * LM_slice;
+
+  }
+  return Rcpp::List::create(Rcpp::Named("log_alpha_sample") = log_alpha_sample,
+                            Rcpp::Named("centers_sample") = centers_sample,
+                            Rcpp::Named("sigmas_sample") = sigma_sample,
+                            Rcpp::Named("mu_alpha_sample") = mu_alpha_sample,
+                            Rcpp::Named("beta_sample") = beta_sample,
+                            Rcpp::Named("n_cent_sample") = sample_n_cent,
+                            Rcpp::Named("cum_int_sample") = sample_cum_int);
+}
