@@ -576,7 +576,7 @@ arma::vec mahaInt_bin(const arma::mat & X,
 #endif
 double area = arma::prod(arma::sqrt(fast_eig2d(sigma))) * M_1_PI;
 out2 = out <= 1;
-return (area * (arma::conv_to<arma::vec>::from(out2)));
+return ((1.0 / area) * (arma::conv_to<arma::vec>::from(out2)));
 }
 
 
