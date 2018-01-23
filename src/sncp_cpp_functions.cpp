@@ -664,9 +664,9 @@ using namespace Rcpp;
 //'
 //' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
 //'
-//' This is where you write details on the function...
 //'
-//' more details....
+//'
+//'
 //'
 //' @param obs_points matrix of coordinates for observed points
 //' @param mean_mu_alpha prior mean for mu_alpha
@@ -687,7 +687,7 @@ using namespace Rcpp;
 //' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 //' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 //'
-//' @author Brian Vestal
+//' @author anon
 //'
 //' @return
 //' Returns a named list posterior samples of model parameters
@@ -1011,11 +1011,11 @@ Rcpp::List bd_process_test(arma::mat obs_points,
 
 //' Bayesian SNCP fit using BD-MCMC
 //'
-//' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
+//' Run a BD-MCMC chain for a SNCP (uniform dispersion density) on lung ct data
 //'
-//' This is where you write details on the function...
 //'
-//' more details....
+//'
+//'
 //'
 //' @param obs_points matrix of coordinates for observed points
 //' @param mean_mu_alpha prior mean for mu_alpha
@@ -1036,7 +1036,7 @@ Rcpp::List bd_process_test(arma::mat obs_points,
 //' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 //' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 //'
-//' @author Brian Vestal
+//' @author anon
 //'
 //' @return
 //' Returns a named list posterior samples of model parameters

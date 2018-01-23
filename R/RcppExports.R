@@ -5,9 +5,9 @@
 #'
 #' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
 #'
-#' This is where you write details on the function...
 #'
-#' more details....
+#'
+#'
 #'
 #' @param obs_points matrix of coordinates for observed points
 #' @param mean_mu_alpha prior mean for mu_alpha
@@ -28,7 +28,7 @@
 #' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 #' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 #'
-#' @author Brian Vestal
+#' @author anon
 #'
 #' @return
 #' Returns a named list posterior samples of model parameters
@@ -40,11 +40,11 @@ bd_process_test <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alp
 
 #' Bayesian SNCP fit using BD-MCMC
 #'
-#' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
+#' Run a BD-MCMC chain for a SNCP (uniform dispersion density) on lung ct data
 #'
-#' This is where you write details on the function...
 #'
-#' more details....
+#'
+#'
 #'
 #' @param obs_points matrix of coordinates for observed points
 #' @param mean_mu_alpha prior mean for mu_alpha
@@ -65,7 +65,7 @@ bd_process_test <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alp
 #' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 #' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 #'
-#' @author Brian Vestal
+#' @author anon
 #'
 #' @return
 #' Returns a named list posterior samples of model parameters
