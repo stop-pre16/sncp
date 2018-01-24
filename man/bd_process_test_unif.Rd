@@ -50,13 +50,8 @@ bd_process_test_unif(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha,
 Returns a named list posterior samples of model parameters
 }
 \description{
-Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
-}
-\details{
-This is where you write details on the function...
-
-more details....
+Run a BD-MCMC chain for a SNCP (uniform dispersion density) on lung ct data
 }
 \author{
-Brian Vestal
+anon
 }

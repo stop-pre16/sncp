@@ -52,11 +52,6 @@ Returns a named list posterior samples of model parameters
 \description{
 Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
 }
-\details{
-This is where you write details on the function...
-
-more details....
-}
 \author{
-Brian Vestal
+anon
 }
