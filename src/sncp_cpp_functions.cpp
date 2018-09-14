@@ -1100,7 +1100,7 @@ Rcpp::List bd_process_test_s(arma::mat obs_points,
                              double prior_n_cent,
                              int max_bd_events,
                              double max_bd_vt,
-                             double sigma_smooth){
+                             double sigma_smooth = 100){
   int i, j, xdim = obs_points.n_cols, n_cent_it, idx_birth, n_points = obs_points.n_rows;
   double ll_cur, ll_prop, mh_log, log_alpha_prop, beta_it = beta, mu_alpha_it, log_pen_val = log(pen_val);
   arma::vec log_alpha_it, beta_sample(n_it), mu_alpha_sample(n_it), xwin(2), ywin(2);
@@ -1410,7 +1410,7 @@ Rcpp::List bd_process_test_s(arma::mat obs_points,
 //'
 //'
 //'
-//' @param obs_points matrix of coordinates for observed points
+//' @param obs_points numeric matrix of coordinates for observed points
 //' @param mean_mu_alpha prior mean for mu_alpha
 //' @param sd_log_alpha prior std. dev. for log_alphas
 //' @param sd_prop_alpha std. dev. for random walk proposal for log_alphas
@@ -1432,7 +1432,7 @@ Rcpp::List bd_process_test_s(arma::mat obs_points,
 //' @author anon
 //'
 //' @return
-//' Returns a named list posterior samples of model parameters
+//' Returns a named list with posterior samples of model parameters (Centers, log(alphas), mu_alpha, beta)
 //'
 //' @export
 // [[Rcpp::export]]

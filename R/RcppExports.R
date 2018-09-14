@@ -84,7 +84,7 @@ bd_process_test_s <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_a
 #'
 #'
 #'
-#' @param obs_points matrix of coordinates for observed points
+#' @param obs_points numeric matrix of coordinates for observed points
 #' @param mean_mu_alpha prior mean for mu_alpha
 #' @param sd_log_alpha prior std. dev. for log_alphas
 #' @param sd_prop_alpha std. dev. for random walk proposal for log_alphas
@@ -106,7 +106,7 @@ bd_process_test_s <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_a
 #' @author anon
 #'
 #' @return
-#' Returns a named list posterior samples of model parameters
+#' Returns a named list with posterior samples of model parameters (Centers, log(alphas), mu_alpha, beta)
 #'
 #' @export
 bd_process_test_unif <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt) {
