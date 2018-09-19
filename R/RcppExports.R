@@ -3,7 +3,7 @@
 
 #' Bayesian SNCP fit using BD-MCMC
 #'
-#' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
+#' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data using a uniform proposal surface for the BD process
 #'
 #'
 #'
@@ -28,19 +28,28 @@
 #' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 #' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 #'
-#' @author anon
+#' @author Brian Vestal
 #'
 #' @return
-#' Returns a named list posterior samples of model parameters
+#' Returns a named list containing posterior samples of model parameters with the following elements:
+#' \itemize{
+#' \item log_alpha_sample = list whose elements are vectors containing the estimated log-alpha estimates for the clusters present in that iteration
+#' \item centers_sample = list whose elements matrices containing the estimated center locations for the clusters present in that iteration
+#' \item sigmas_sample = list whose elements are lists containing the estimated covariance matrix estimates for the clusters present in that iteration
+#' \item mu_alpha_sample = vector of mu_alpha samples
+#' \item eta_sample = vector of eta samples,
+#' \item n_centers_sample = vector that contains the number of estimated clusters at each iteration,
+#' \item cumulative_intensity_sample = vector that contains the cumulative intensity estimate for the SNCP at each iteration
+#' }
 #'
 #' @export
-bd_process_test <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt) {
-    .Call(`_sncp_bd_process_test`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt)
+sncp_bdmcmc <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt) {
+    .Call(`_sncp_sncp_bdmcmc`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt)
 }
 
-#' Bayesian SNCP fit using BD-MCMC
+#' Bayesian SNCP fit using BD-MCMC with informative proposal surface
 #'
-#' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
+#' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data using the kernal-smoothed point pattern as the proposal surface in the BD process
 #'
 #'
 #'
@@ -66,19 +75,28 @@ bd_process_test <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alp
 #' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 #' @param sigma_smooth smoothing bandwidth for BD proposal surface
 #'
-#' @author anon
+#' @author Brian Vestal
 #'
 #' @return
-#' Returns a named list posterior samples of model parameters
+#' Returns a named list containing posterior samples of model parameters with the following elements:
+#' \itemize{
+#' \item log_alpha_sample = list whose elements are vectors containing the estimated log-alpha estimates for the clusters present in that iteration
+#' \item centers_sample = list whose elements matrices containing the estimated center locations for the clusters present in that iteration
+#' \item sigmas_sample = list whose elements are lists containing the estimated covariance matrix estimates for the clusters present in that iteration
+#' \item mu_alpha_sample = vector of mu_alpha samples
+#' \item eta_sample = vector of eta samples,
+#' \item n_centers_sample = vector that contains the number of estimated clusters at each iteration,
+#' \item cumulative_intensity_sample = vector that contains the cumulative intensity estimate for the SNCP at each iteration
+#' }
 #'
 #' @export
-bd_process_test_s <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt, sigma_smooth) {
-    .Call(`_sncp_bd_process_test_s`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt, sigma_smooth)
+sncp_bdmcmc_smooth <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt, sigma_smooth = 100) {
+    .Call(`_sncp_sncp_bdmcmc_smooth`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt, sigma_smooth)
 }
 
 #' Bayesian SNCP fit using BD-MCMC
 #'
-#' Run a BD-MCMC chain for a SNCP (uniform dispersion density) on lung ct data
+#' Run a BD-MCMC chain for a SNCP (uniform dispersion density) on lung ct data with uniform proposal surface for BD process
 #'
 #'
 #'
@@ -103,13 +121,22 @@ bd_process_test_s <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_a
 #' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 #' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 #'
-#' @author anon
+#' @author Brian Vestal
 #'
 #' @return
-#' Returns a named list with posterior samples of model parameters (Centers, log(alphas), mu_alpha, beta)
+#' Returns a named list containing posterior samples of model parameters with the following elements:
+#' \itemize{
+#' \item log_alpha_sample = list whose elements are vectors containing the estimated log-alpha estimates for the clusters present in that iteration
+#' \item centers_sample = list whose elements matrices containing the estimated center locations for the clusters present in that iteration
+#' \item sigmas_sample = list whose elements are lists containing the estimated covariance matrix estimates for the clusters present in that iteration
+#' \item mu_alpha_sample = vector of mu_alpha samples
+#' \item eta_sample = vector of eta samples,
+#' \item n_centers_sample = vector that contains the number of estimated clusters at each iteration,
+#' \item cumulative_intensity_sample = vector that contains the cumulative intensity estimate for the SNCP at each iteration
+#' }
 #'
 #' @export
-bd_process_test_unif <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt) {
-    .Call(`_sncp_bd_process_test_unif`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt)
+sncp_bdmcmc_unif <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt) {
+    .Call(`_sncp_sncp_bdmcmc_unif`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt)
 }
 

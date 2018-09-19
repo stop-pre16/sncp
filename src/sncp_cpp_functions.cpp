@@ -693,7 +693,7 @@ using namespace Rcpp;
 
 //' Bayesian SNCP fit using BD-MCMC
 //'
-//' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
+//' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data using a uniform proposal surface for the BD process
 //'
 //'
 //'
@@ -718,15 +718,24 @@ using namespace Rcpp;
 //' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 //' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 //'
-//' @author anon
+//' @author Brian Vestal
 //'
 //' @return
-//' Returns a named list posterior samples of model parameters
+//' Returns a named list containing posterior samples of model parameters with the following elements:
+//' \itemize{
+//' \item log_alpha_sample = list whose elements are vectors containing the estimated log-alpha estimates for the clusters present in that iteration
+//' \item centers_sample = list whose elements matrices containing the estimated center locations for the clusters present in that iteration
+//' \item sigmas_sample = list whose elements are lists containing the estimated covariance matrix estimates for the clusters present in that iteration
+//' \item mu_alpha_sample = vector of mu_alpha samples
+//' \item eta_sample = vector of eta samples,
+//' \item n_centers_sample = vector that contains the number of estimated clusters at each iteration,
+//' \item cumulative_intensity_sample = vector that contains the cumulative intensity estimate for the SNCP at each iteration
+//' }
 //'
 //' @export
 // [[Rcpp::export]]
 
-Rcpp::List bd_process_test(arma::mat obs_points,
+Rcpp::List sncp_bdmcmc(arma::mat obs_points,
                            double mean_mu_alpha,
                            double sd_log_alpha,
                            double sd_prop_alpha,
@@ -1033,8 +1042,8 @@ Rcpp::List bd_process_test(arma::mat obs_points,
                             Rcpp::Named("sigmas_sample") = sigma_sample,
                             Rcpp::Named("mu_alpha_sample") = mu_alpha_sample,
                             Rcpp::Named("beta_sample") = beta_sample,
-                            Rcpp::Named("n_cent_sample") = sample_n_cent,
-                            Rcpp::Named("cum_int_sample") = sample_cum_int);
+                            Rcpp::Named("n_centers_sample") = sample_n_cent,
+                            Rcpp::Named("cumulative_intensity_sample") = sample_cum_int);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1046,9 +1055,9 @@ Rcpp::List bd_process_test(arma::mat obs_points,
 //////////////////////////////////////////////////////////////////////////////
 
 
-//' Bayesian SNCP fit using BD-MCMC
+//' Bayesian SNCP fit using BD-MCMC with informative proposal surface
 //'
-//' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data
+//' Run a BD-MCMC chain for a SNCP (mvn dispersion density) on lung ct data using the kernal-smoothed point pattern as the proposal surface in the BD process
 //'
 //'
 //'
@@ -1074,15 +1083,24 @@ Rcpp::List bd_process_test(arma::mat obs_points,
 //' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 //' @param sigma_smooth smoothing bandwidth for BD proposal surface
 //'
-//' @author anon
+//' @author Brian Vestal
 //'
 //' @return
-//' Returns a named list posterior samples of model parameters
+//' Returns a named list containing posterior samples of model parameters with the following elements:
+//' \itemize{
+//' \item log_alpha_sample = list whose elements are vectors containing the estimated log-alpha estimates for the clusters present in that iteration
+//' \item centers_sample = list whose elements matrices containing the estimated center locations for the clusters present in that iteration
+//' \item sigmas_sample = list whose elements are lists containing the estimated covariance matrix estimates for the clusters present in that iteration
+//' \item mu_alpha_sample = vector of mu_alpha samples
+//' \item eta_sample = vector of eta samples,
+//' \item n_centers_sample = vector that contains the number of estimated clusters at each iteration,
+//' \item cumulative_intensity_sample = vector that contains the cumulative intensity estimate for the SNCP at each iteration
+//' }
 //'
 //' @export
 // [[Rcpp::export]]
 
-Rcpp::List bd_process_test_s(arma::mat obs_points,
+Rcpp::List sncp_bdmcmc_smooth(arma::mat obs_points,
                              double mean_mu_alpha,
                              double sd_log_alpha,
                              double sd_prop_alpha,
@@ -1393,8 +1411,8 @@ Rcpp::List bd_process_test_s(arma::mat obs_points,
                             Rcpp::Named("sigmas_sample") = sigma_sample,
                             Rcpp::Named("mu_alpha_sample") = mu_alpha_sample,
                             Rcpp::Named("beta_sample") = beta_sample,
-                            Rcpp::Named("n_cent_sample") = sample_n_cent,
-                            Rcpp::Named("cum_int_sample") = sample_cum_int);
+                            Rcpp::Named("n_centers_sample") = sample_n_cent,
+                            Rcpp::Named("cumulative_intensity_sample") = sample_cum_int);
 }
 
 
@@ -1404,7 +1422,7 @@ Rcpp::List bd_process_test_s(arma::mat obs_points,
 
 //' Bayesian SNCP fit using BD-MCMC
 //'
-//' Run a BD-MCMC chain for a SNCP (uniform dispersion density) on lung ct data
+//' Run a BD-MCMC chain for a SNCP (uniform dispersion density) on lung ct data with uniform proposal surface for BD process
 //'
 //'
 //'
@@ -1429,15 +1447,24 @@ Rcpp::List bd_process_test_s(arma::mat obs_points,
 //' @param max_bd_events max events (births + deaths) to allow at each iteration of BD-MCMC
 //' @param max_bd_vt max ammount of virtual time to spend in BD process at each BD_MCMC iteration
 //'
-//' @author anon
+//' @author Brian Vestal
 //'
 //' @return
-//' Returns a named list with posterior samples of model parameters (Centers, log(alphas), mu_alpha, beta)
+//' Returns a named list containing posterior samples of model parameters with the following elements:
+//' \itemize{
+//' \item log_alpha_sample = list whose elements are vectors containing the estimated log-alpha estimates for the clusters present in that iteration
+//' \item centers_sample = list whose elements matrices containing the estimated center locations for the clusters present in that iteration
+//' \item sigmas_sample = list whose elements are lists containing the estimated covariance matrix estimates for the clusters present in that iteration
+//' \item mu_alpha_sample = vector of mu_alpha samples
+//' \item eta_sample = vector of eta samples,
+//' \item n_centers_sample = vector that contains the number of estimated clusters at each iteration,
+//' \item cumulative_intensity_sample = vector that contains the cumulative intensity estimate for the SNCP at each iteration
+//' }
 //'
 //' @export
 // [[Rcpp::export]]
 
-Rcpp::List bd_process_test_unif(arma::mat obs_points,
+Rcpp::List sncp_bdmcmc_unif(arma::mat obs_points,
                                 double mean_mu_alpha,
                                 double sd_log_alpha,
                                 double sd_prop_alpha,
@@ -1746,6 +1773,6 @@ Rcpp::List bd_process_test_unif(arma::mat obs_points,
                             Rcpp::Named("sigmas_sample") = sigma_sample,
                             Rcpp::Named("mu_alpha_sample") = mu_alpha_sample,
                             Rcpp::Named("beta_sample") = beta_sample,
-                            Rcpp::Named("n_cent_sample") = sample_n_cent,
-                            Rcpp::Named("cum_int_sample") = sample_cum_int);
+                            Rcpp::Named("n_centers_sample") = sample_n_cent,
+                            Rcpp::Named("cumulative_intensity_sample") = sample_cum_int);
 }
