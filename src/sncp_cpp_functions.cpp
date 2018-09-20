@@ -1147,7 +1147,7 @@ Rcpp::List sncp_bdmcmc_smooth(arma::mat obs_points,
   ywin(0) = lung_data.col(1).min();
   ywin(1) = lung_data.col(1).max();
 
-  BD_probs = fastDMVNorm_diag_norm_sum(lung_data, lung_data, sigma_smooth);
+  BD_probs = fastDMVNorm_diag_norm_sum(lung_data, obs_points, sigma_smooth);
   BD_probs = BD_probs / arma::sum(BD_probs);
 
   idx_centers_init = RcppArmadillo::sample(lung_data_idx, n_cent_init, false, BD_probs);
