@@ -1,0 +1,173 @@
+---
+title: "sncp: an R package for fitting a Shot Noise Cox Process to lung CT scans"
+author: "Brian Vestal"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+%\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  ---
+  
+  # Introduction
+  This vignette goes through an example of using the functions available in the sncp R package to get estimated parameters for a Shot Noise Cox Process (SNCP) fit to lung CT scans that show radiologically based evidence of emphysema as described in "Using a Spatial Point Process Framework to Characterize Lung Computed Tomography Scans" by Vestal et al.  We begin by loading in the sncp R package, along with several others that will be utilized for model summaries and visualizations.
+  
+```{r, warning = FALSE, message = FALSE}
+  library(sncp)
+  library(ggplot2)
+  library(dplyr)
+  library(ellipse)
+```
+  
+Next, we visualize the simulated point pattern:
+```{r}
+ggplot(boundry_total) +
+  aes(x = x, y = y) +
+  geom_tile() +
+  geom_tile(data = sim_data$pointPattern, color = 'red') +
+  geom_point(data = sim_data$centers, color = 'blue') +
+  ggtitle("Simulated Point Pattern")
+```
+
+Here we can see that there are 10 true clusters (centers are the blue dots) with the observed pixels (e.g. emphysema) as the red tiles.
+
+# Fitting the SNCP 
+There are two versions of the SNCP that we can fit where the only difference is how new points are proposed in the birth-death process.  In sncp_bdmcmc we use a uniform proposal distribution, where as in sncp_bdmcmc_smooth we use the data driven proposal surface described in the above referenced paper.  The input arguments are the same for both with the exception of the sncp_bdmcmc_smooth version needing the smoothing bandwidth for the proposal surface as well.  In this example, we will use the sncp_bdmcmc_smooth version (should take a few seconds to run):
+
+```{r}
+resultsBDMCMC <- sncp_bdmcmc_smooth(obs_points = as.matrix(sim_data$pointPattern),
+                                    mean_mu_alpha = 8,
+                                    sd_log_alpha = sqrt(3),
+                                    sd_prop_alpha = .5,
+                                    beta = .001,
+                                    n_it = 10000,
+                                    window_hw = 5,
+                                    df_iw_prior = 5,
+                                    df_iw_prop = 15,
+                                    sigma_prior = diag(x = 40, nrow = 2),
+                                    lung_data = as.matrix(lung_data),
+                                    var_mu_alpha = 5,
+                                    pen_dist = 20,
+                                    pen_val = 1e-9,
+                                    n_cent_init = 2,
+                                    prior_n_cent = 3,
+                                    max_bd_events = 20,
+                                    max_bd_vt = 5,
+                                    sigma_smooth = 100)
+```
+
+# Summarizing the Results
+Now that we have the posterior estimates for each of the model parameters, we can explore how well they match the true values that went into generating the simulated data set.  
+
+##  Number of clusters
+We begin by examining the number of clusters that are estimated to be there, along with their location:
+
+```{r}
+###   Heat map of center locations
+
+##  Collapsing the estimated cluster centers into a single data frame
+centers_list <- lapply(resultsBDMCMC$centers_sample, function(x){
+  ret <- as.data.frame(x)
+  names(ret) <- c("x", "y")
+  return(ret)
+})
+centers_sample_collapsed <-  bind_rows(centers_list)
+
+##  Getting rounded x and y coordinates for building the heatmap at the pixel level
+centers_sample_collapsed$y_round <- round(centers_sample_collapsed$y)
+centers_sample_collapsed$x_round <- round(centers_sample_collapsed$x)
+
+##  Getting counts for each pixel of how many iterations it was estimated to be a cluster center
+centers_heat_map_df <- centers_sample_collapsed %>%
+  group_by(x_round, y_round) %>%
+  summarise(num = n()) %>% 
+  filter(num > 5) #only plotting pixels that show up in at least 5 iterations 
+
+names(centers_heat_map_df)[1:2] <- c('x', 'y')
+ggplot(centers_heat_map_df) +
+  aes(x = x, y = y) +
+  geom_tile(aes(fill = num), height = 1, width = 1) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  geom_tile(data = boundry_total, fill = "black", aes(x = x, y = y)) +
+  xlab("x") +
+  ylab("y") +
+  ggtitle("Posterior distribution of estimated cluster centers")
+```
+Next we look at how many clusters there were estimated to be by using the posterior median, and we examine the MCMC's mixing and convergence by creating a trace plot of this value:
+```{r}
+df_n_cent <- data.frame(num_centers = resultsBDMCMC$n_centers_sample, 
+                        it =1:length(resultsBDMCMC$mu_alpha_sample))
+ggplot(df_n_cent) +
+  aes(x = it, y = num_centers) +
+  geom_path() +
+  ggtitle("Trace plot for number of estimated centers")
+summary(resultsBDMCMC$n_centers_sample)
+
+### Estimation error:
+median(resultsBDMCMC$n_centers_sample) - sim_data$nClust
+```
+
+Now we will create a plot that shows the estimated clustering from the last iteration of the BD-MCMC
+
+```{r}
+ellipseLevel <- .75
+
+  centers_sub <- data.frame(resultsBDMCMC$centers_sample[[10000]])
+  names(centers_sub) <- c('x', 'y')
+  sigmas_sub <- resultsBDMCMC$sigmas_sample[[10000]]
+  ellipse_tmp <- do.call(rbind, lapply(1:nrow(centers_sub), function(j){
+    dat_tmp <- ellipse::ellipse(x = sigmas_sub[, , j], level = ellipseLevel, centre = as.numeric(centers_sub[j, ]))
+    ret <- cbind(data.frame(dat_tmp), cluster = j)
+    return(ret)
+  }))
+  ggplot(boundry_total) +
+    aes(x = x, y = y) +
+    geom_tile() +
+    geom_tile(data = sim_data$pointPattern, fill = 'red') +
+    geom_point(data = centers_sub, color = 'black', size = 1) +
+    geom_path(data = ellipse_tmp, aes(group = cluster)) +
+    ggtitle("Estimated Clustering")
+
+```
+
+## Vignette Info
+
+Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+
+## Styles
+
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+
+output: 
+rmarkdown::html_vignette:
+css: mystyles.css
+
+## Figures
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+output:
+rmarkdown::html_vignette:
+fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## More Examples
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))
