@@ -4,12 +4,12 @@ author: "Brian Vestal"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-%\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  ---
+---
   
-  # Introduction
+# Introduction
   This vignette goes through an example of using the functions available in the sncp R package to get estimated parameters for a Shot Noise Cox Process (SNCP) fit to lung CT scans that show radiologically based evidence of emphysema as described in "Using a Spatial Point Process Framework to Characterize Lung Computed Tomography Scans" by Vestal et al.  We begin by loading in the sncp R package, along with several others that will be utilized for model summaries and visualizations.
   
 ```{r, warning = FALSE, message = FALSE}
@@ -91,16 +91,18 @@ ggplot(centers_heat_map_df) +
   geom_tile(data = boundry_total, fill = "black", aes(x = x, y = y)) +
   xlab("x") +
   ylab("y") +
-  ggtitle("Posterior distribution of estimated cluster centers")
+  ggtitle("Posterior distribution of \nestimated cluster centers")
 ```
+
 Next we look at how many clusters there were estimated to be by using the posterior median, and we examine the MCMC's mixing and convergence by creating a trace plot of this value:
+
 ```{r}
 df_n_cent <- data.frame(num_centers = resultsBDMCMC$n_centers_sample, 
                         it =1:length(resultsBDMCMC$mu_alpha_sample))
 ggplot(df_n_cent) +
   aes(x = it, y = num_centers) +
   geom_path() +
-  ggtitle("Trace plot for number of estimated centers")
+  ggtitle("Trace plot for number \nof estimated centers")
 summary(resultsBDMCMC$n_centers_sample)
 
 ### Estimation error:
@@ -109,65 +111,71 @@ median(resultsBDMCMC$n_centers_sample) - sim_data$nClust
 
 Now we will create a plot that shows the estimated clustering from the last iteration of the BD-MCMC
 
+
 ```{r}
 ellipseLevel <- .75
 
-  centers_sub <- data.frame(resultsBDMCMC$centers_sample[[10000]])
-  names(centers_sub) <- c('x', 'y')
-  sigmas_sub <- resultsBDMCMC$sigmas_sample[[10000]]
-  ellipse_tmp <- do.call(rbind, lapply(1:nrow(centers_sub), function(j){
-    dat_tmp <- ellipse::ellipse(x = sigmas_sub[, , j], level = ellipseLevel, centre = as.numeric(centers_sub[j, ]))
-    ret <- cbind(data.frame(dat_tmp), cluster = j)
-    return(ret)
-  }))
-  ggplot(boundry_total) +
-    aes(x = x, y = y) +
-    geom_tile() +
-    geom_tile(data = sim_data$pointPattern, fill = 'red') +
-    geom_point(data = centers_sub, color = 'black', size = 1) +
-    geom_path(data = ellipse_tmp, aes(group = cluster)) +
-    ggtitle("Estimated Clustering")
+centers_sub <- data.frame(resultsBDMCMC$centers_sample[[10000]])
+names(centers_sub) <- c('x', 'y')
+sigmas_sub <- resultsBDMCMC$sigmas_sample[[10000]]
+ellipse_tmp <- do.call(rbind, lapply(1:nrow(centers_sub), function(j){
+  dat_tmp <- ellipse::ellipse(x = sigmas_sub[, , j], level = ellipseLevel, centre = as.numeric(centers_sub[j, ]))
+  ret <- cbind(data.frame(dat_tmp), cluster = j)
+  return(ret)
+}))
+ggplot(boundry_total) +
+  aes(x = x, y = y) +
+  geom_tile() +
+  geom_tile(data = sim_data$pointPattern, fill = 'red') +
+  geom_point(data = centers_sub, color = 'black', size = 1) +
+  geom_path(data = ellipse_tmp, aes(group = cluster)) +
+  ggtitle("Estimated Clustering")
 
 ```
 
-## Vignette Info
+## Average Cluster Size
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+Next we look at the posterior distribution for the average size of clusters (on the log scale).  
 
-## Styles
+```{r}
+###   Trace plot for mu_alpha
+tp_mu_alpha_df <- data.frame(mu_alpha = resultsBDMCMC$mu_alpha_sample,
+                             it = 1:length(resultsBDMCMC$mu_alpha_sample))
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-output: 
-rmarkdown::html_vignette:
-css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+ggplot(tp_mu_alpha_df) +
+  aes(x = it, y = mu_alpha) +
+  geom_path() +
+  ggtitle("Trace plot for mu_alpha")
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+From the trace plot we see that the sampler seems to have converged to the target distribution very quickly.
 
-output:
-rmarkdown::html_vignette:
-fig_caption: yes
+```{r}
+###   Summary of mu_alpha posterior sample
+summary(resultsBDMCMC$mu_alpha_sample)
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+###   Estimation error for mu_alpha using posterior median
+median(resultsBDMCMC$mu_alpha_sample) - sim_data$muAlpha
 ```
 
-Also a quote using `>`:
+## Measure of Random Scatter
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+Finally we look at the posterior distribution for the amount of random scatter, or diseased pixels that do not show evidence of clustering (again on the log scale).  
+
+```{r}
+###   Trace plot for eta
+tp_eta_df <- data.frame(eta = resultsBDMCMC$beta_sample,
+                             it = 1:length(resultsBDMCMC$beta_sample))
+
+ggplot(tp_eta_df) +
+  aes(x = it, y = eta) +
+  geom_path() +
+  ggtitle("Trace plot for eta")
+
+###   Summary of log(eta) posterior sample
+summary(resultsBDMCMC$beta_sample)
+
+###   Estimation error for eta using posterior median
+median(resultsBDMCMC$beta_sample) - sim_data$beta
+```
+

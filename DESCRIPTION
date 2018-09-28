@@ -4,7 +4,7 @@ Title: BD-MCMC Functions to fit SNCP Models
 Version: 0.1.1
 Author: Brian Vestal
 Maintainer: Brian Vestal <vestalb@njhealth.org>
-Description: Function for fitting SNCP using Birth-Death MCMC
+Description: Functions for fitting SNCP using Birth-Death MCMC
 License: GPL-2
 Encoding: UTF-8
 Imports: Rcpp (>= 0.12.09)
