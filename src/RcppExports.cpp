@@ -91,6 +91,35 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sncp_bdmcmc_cont_fixed_noise
+Rcpp::List sncp_bdmcmc_cont_fixed_noise(arma::mat obs_points, double mean_mu_alpha, double sd_log_alpha, double sd_prop_alpha, double eta, int n_it, double window_hw, int df_iw_prior, int df_iw_prop, arma::mat sigma_prior, arma::vec xwin, arma::vec ywin, double var_mu_alpha, double pen_dist, double pen_val, int n_cent_init, double prior_n_cent, int max_bd_events, double max_bd_vt);
+RcppExport SEXP _sncp_sncp_bdmcmc_cont_fixed_noise(SEXP obs_pointsSEXP, SEXP mean_mu_alphaSEXP, SEXP sd_log_alphaSEXP, SEXP sd_prop_alphaSEXP, SEXP etaSEXP, SEXP n_itSEXP, SEXP window_hwSEXP, SEXP df_iw_priorSEXP, SEXP df_iw_propSEXP, SEXP sigma_priorSEXP, SEXP xwinSEXP, SEXP ywinSEXP, SEXP var_mu_alphaSEXP, SEXP pen_distSEXP, SEXP pen_valSEXP, SEXP n_cent_initSEXP, SEXP prior_n_centSEXP, SEXP max_bd_eventsSEXP, SEXP max_bd_vtSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type obs_points(obs_pointsSEXP);
+    Rcpp::traits::input_parameter< double >::type mean_mu_alpha(mean_mu_alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type sd_log_alpha(sd_log_alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type sd_prop_alpha(sd_prop_alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type eta(etaSEXP);
+    Rcpp::traits::input_parameter< int >::type n_it(n_itSEXP);
+    Rcpp::traits::input_parameter< double >::type window_hw(window_hwSEXP);
+    Rcpp::traits::input_parameter< int >::type df_iw_prior(df_iw_priorSEXP);
+    Rcpp::traits::input_parameter< int >::type df_iw_prop(df_iw_propSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type sigma_prior(sigma_priorSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type xwin(xwinSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ywin(ywinSEXP);
+    Rcpp::traits::input_parameter< double >::type var_mu_alpha(var_mu_alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type pen_dist(pen_distSEXP);
+    Rcpp::traits::input_parameter< double >::type pen_val(pen_valSEXP);
+    Rcpp::traits::input_parameter< int >::type n_cent_init(n_cent_initSEXP);
+    Rcpp::traits::input_parameter< double >::type prior_n_cent(prior_n_centSEXP);
+    Rcpp::traits::input_parameter< int >::type max_bd_events(max_bd_eventsSEXP);
+    Rcpp::traits::input_parameter< double >::type max_bd_vt(max_bd_vtSEXP);
+    rcpp_result_gen = Rcpp::wrap(sncp_bdmcmc_cont_fixed_noise(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, eta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, xwin, ywin, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sncp_bdmcmc_smooth
 Rcpp::List sncp_bdmcmc_smooth(arma::mat obs_points, double mean_mu_alpha, double sd_log_alpha, double sd_prop_alpha, double beta, int n_it, double window_hw, int df_iw_prior, int df_iw_prop, arma::mat sigma_prior, arma::mat lung_data, double var_mu_alpha, double pen_dist, double pen_val, int n_cent_init, double prior_n_cent, int max_bd_events, double max_bd_vt, double sigma_smooth);
 RcppExport SEXP _sncp_sncp_bdmcmc_smooth(SEXP obs_pointsSEXP, SEXP mean_mu_alphaSEXP, SEXP sd_log_alphaSEXP, SEXP sd_prop_alphaSEXP, SEXP betaSEXP, SEXP n_itSEXP, SEXP window_hwSEXP, SEXP df_iw_priorSEXP, SEXP df_iw_propSEXP, SEXP sigma_priorSEXP, SEXP lung_dataSEXP, SEXP var_mu_alphaSEXP, SEXP pen_distSEXP, SEXP pen_valSEXP, SEXP n_cent_initSEXP, SEXP prior_n_centSEXP, SEXP max_bd_eventsSEXP, SEXP max_bd_vtSEXP, SEXP sigma_smoothSEXP) {
@@ -153,6 +182,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sncp_sncp_bdmcmc", (DL_FUNC) &_sncp_sncp_bdmcmc, 18},
     {"_sncp_sncp_bdmcmc_cont", (DL_FUNC) &_sncp_sncp_bdmcmc_cont, 19},
     {"_sncp_sncp_bdmcmc_cont_no_noise", (DL_FUNC) &_sncp_sncp_bdmcmc_cont_no_noise, 18},
+    {"_sncp_sncp_bdmcmc_cont_fixed_noise", (DL_FUNC) &_sncp_sncp_bdmcmc_cont_fixed_noise, 19},
     {"_sncp_sncp_bdmcmc_smooth", (DL_FUNC) &_sncp_sncp_bdmcmc_smooth, 19},
     {"_sncp_sncp_bdmcmc_unif", (DL_FUNC) &_sncp_sncp_bdmcmc_unif, 18},
     {NULL, NULL, 0}
