@@ -27,7 +27,7 @@ KDS_filt <- function(sim_pattern,
     n_pts <- nrow(sim_pattern)
     n_pts_orig <- n_pts
     sigma2 <- bw_method_c
-    sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop(A = as.matrix(sim_pattern[, 1:2]),
+    sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop_safe(A = as.matrix(sim_pattern[, 1:2]),
                                                                               B = as.matrix(sim_pattern[, 1:2]),
                                                                               sigma2 = sigma2))
 
@@ -57,7 +57,7 @@ KDS_filt <- function(sim_pattern,
       #   sigma2 <- attributes(dens_ppp)$sigma
       # }
 
-      sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop(A = as.matrix(sim_pattern[, 1:2]),
+      sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop_safe(A = as.matrix(sim_pattern[, 1:2]),
                                                                                 B = as.matrix(sim_pattern[, 1:2]),
                                                                                 sigma2 = sigma2))
 
@@ -78,7 +78,7 @@ KDS_filt <- function(sim_pattern,
     }
     else{
       sim_pattern_sub <- sim_pattern_sub %>% dplyr::mutate(type = 'feature')
-      ret <- sim_pattern_full %>% dplyr::left_join(sim_pattern_sub)
+      ret <- sim_pattern_full %>% dplyr::left_join(sim_pattern_sub, by = c('x', 'y'))
       ret$type <- ifelse(is.na(ret$type), yes = 'noise', no = ret$type)
     }
   }
@@ -98,14 +98,14 @@ KDS_filt <- function(sim_pattern,
     dat_ppp <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
     dens_ppp <- tryCatch(density(x = dat_ppp, sigma = bw_method, edge = T, diggle = T, leaveoneout = T),
                          error = function(e){return(NA)})
-    if(is.na(dens_ppp)){
+    if(any(is.na(dens_ppp))){
       return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
     }
     sigma2 <- attributes(dens_ppp)$sigma^2
     if(bw_method_c == "bw.CvL"){
       sigma2 <- attributes(dens_ppp)$sigma
     }
-    sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop(A = as.matrix(sim_pattern[, 1:2]),
+    sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop_safe(A = as.matrix(sim_pattern[, 1:2]),
                                                                               B = as.matrix(sim_pattern[, 1:2]),
                                                                               sigma2 = sigma2))
 
@@ -131,7 +131,7 @@ KDS_filt <- function(sim_pattern,
       dat_ppp_sub <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
       dens_ppp <- tryCatch(density(x = dat_ppp_sub, sigma = bw_method, edge = T, diggle = T, leaveoneout = T),
                            error = function(e){return(NA)})
-      if(is.na(dens_ppp)){
+      if(any(is.na(dens_ppp))){
         return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
       }
       sigma2 <- attributes(dens_ppp)$sigma^2
@@ -139,7 +139,7 @@ KDS_filt <- function(sim_pattern,
         sigma2 <- attributes(dens_ppp)$sigma
       }
 
-      sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop(A = as.matrix(sim_pattern[, 1:2]),
+      sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop_safe(A = as.matrix(sim_pattern[, 1:2]),
                                                                                 B = as.matrix(sim_pattern[, 1:2]),
                                                                                 sigma2 = sigma2))
 
@@ -160,7 +160,7 @@ KDS_filt <- function(sim_pattern,
     }
     else{
       sim_pattern_sub <- sim_pattern_sub %>% dplyr::mutate(type = 'feature')
-      ret <- sim_pattern_full %>% dplyr::left_join(sim_pattern_sub)
+      ret <- sim_pattern_full %>% dplyr::left_join(sim_pattern_sub, by = c('x', 'y'))
       ret$type <- ifelse(is.na(ret$type), yes = 'noise', no = ret$type)
     }
   }
@@ -272,14 +272,14 @@ KDS_filt_pix <- function(sim_pattern,
     dat_ppp <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
     dens_ppp <- tryCatch(density(x = dat_ppp, sigma = bw_method, edge = T, diggle = T, leaveoneout = T),
                          error = function(e){return(NA)})
-    if(is.na(dens_ppp)){
+    if(any(is.na(dens_ppp))){
       return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
     }
     sigma2 <- attributes(dens_ppp)$sigma^2
     if(bw_method_c == "bw.CvL"){
       sigma2 <- attributes(dens_ppp)$sigma
     }
-    sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop(A = as.matrix(sim_pattern[, 1:2]),
+    sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop_safe(A = as.matrix(sim_pattern[, 1:2]),
                                                                               B = as.matrix(sim_pattern[, 1:2]),
                                                                               sigma2 = sigma2))
 
@@ -305,7 +305,7 @@ KDS_filt_pix <- function(sim_pattern,
       dat_ppp_sub <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
       dens_ppp <- tryCatch(density(x = dat_ppp_sub, sigma = bw_method, edge = T, diggle = T, leaveoneout = T),
                            error = function(e){return(NA)})
-      if(is.na(dens_ppp)){
+      if(any(is.na(dens_ppp))){
         return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
       }
       sigma2 <- attributes(dens_ppp)$sigma^2
@@ -313,7 +313,7 @@ KDS_filt_pix <- function(sim_pattern,
         sigma2 <- attributes(dens_ppp)$sigma
       }
 
-      sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop(A = as.matrix(sim_pattern[, 1:2]),
+      sim_pattern$dens_d <- as.numeric(dentools::fastDMVNorm_diag_norm_sum_drop_safe(A = as.matrix(sim_pattern[, 1:2]),
                                                                                 B = as.matrix(sim_pattern[, 1:2]),
                                                                                 sigma2 = sigma2))
 
