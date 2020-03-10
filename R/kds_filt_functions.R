@@ -178,6 +178,7 @@ KDS_filt <- function(sim_pattern,
 #' @param bw_method_c Either numeric smoothing bandwidth, or character string for methods (bw_ppl, bw_diggle, bw_CvL)
 #' @param thresh Quantile to use for filtering noise
 #' @param n_sim_data Number of simulation datasets to use for constructing null distribution
+#' @param edge_correct Logical variable denoting if kernel intensity estimates should be edge corrected
 #'
 #' @return
 #' Returns a data frame with x and y coordinates, and the feature or noise classification for each point
@@ -189,7 +190,8 @@ KDS_filt2 <- function(sim_pattern,
                       ywin,
                       bw_method_c = 'bw.ppl',
                       thresh = .5,
-                      n_sim_data = 20){
+                      n_sim_data = 20,
+                      edge_correct = T){
   sim_pattern_full <- sim_pattern
   # print("denoising")
   if(is.numeric(bw_method_c)){
@@ -200,8 +202,8 @@ KDS_filt2 <- function(sim_pattern,
     dat_ppp = spatstat::ppp(x = sim_pattern[, 1], y = sim_pattern[, 2], window = owin(xwin, ywin))
     sim_pattern$dens_d <- as.numeric(spatstat::density.ppp(x = dat_ppp,
                                                            sigma = sigma2,
-                                                           edge = T,
-                                                           diggle = T,
+                                                           edge = edge_correct,
+                                                           diggle = edge_correct,
                                                            leaveoneout = T,
                                                            at = 'points'))
 
@@ -211,8 +213,8 @@ KDS_filt2 <- function(sim_pattern,
       dat_ppp_sub = spatstat::ppp(sim_pts_sub$x, sim_pts_sub$y, owin(xwin, ywin))
       dens_ppp_sub = spatstat::density.ppp(x = dat_ppp_sub,
                                            sigma = sigma2,
-                                           edge = T,
-                                           diggle = T,
+                                           edge = edge_correct,
+                                           diggle = edge_correct,
                                            leaveoneout = T,
                                            at = 'points')
       return(as.numeric(dens_ppp_sub))
@@ -237,8 +239,8 @@ KDS_filt2 <- function(sim_pattern,
 
       sim_pattern$dens_d <- as.numeric(density(x = dat_ppp_sub,
                                                sigma = sigma2,
-                                               edge = T,
-                                               diggle = T,
+                                               edge = edge_correct,
+                                               diggle = edge_correct,
                                                leaveoneout = T,
                                                at = 'points'))
 
@@ -249,8 +251,8 @@ KDS_filt2 <- function(sim_pattern,
         dat_ppp_sim = spatstat::ppp(sim_pts_sim$x, sim_pts_sim$y, owin(xwin, ywin))
         dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
                                              sigma = sigma2,
-                                             edge = T,
-                                             diggle = T,
+                                             edge = edge_correct,
+                                             diggle = edge_correct,
                                              leaveoneout = T,
                                              at = 'points')
         return(as.numeric(dens_ppp_sim))
@@ -285,8 +287,12 @@ KDS_filt2 <- function(sim_pattern,
     n_pts <- nrow(sim_pattern)
     n_pts_orig <- n_pts
     dat_ppp <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
-    dens_ppp <- tryCatch(density(x = dat_ppp, sigma = bw_method,
-                                 edge = T, diggle = T, leaveoneout = T, at = 'points'),
+    dens_ppp <- tryCatch(density(x = dat_ppp,
+                                 sigma = bw_method,
+                                 edge = edge_correct,
+                                 diggle = edge_correct,
+                                 leaveoneout = T,
+                                 at = 'points'),
                          error = function(e){return(NA)})
     if(any(is.na(dens_ppp))){
       return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
@@ -303,8 +309,8 @@ KDS_filt2 <- function(sim_pattern,
       dat_ppp_sim = spatstat::ppp(sim_pts_sim$x, sim_pts_sim$y, owin(xwin, ywin))
       dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
                                            sigma = sigma2,
-                                           edge = T,
-                                           diggle = T,
+                                           edge = edge_correct,
+                                           diggle = edge_correct,
                                            leaveoneout = T,
                                            at = 'points')
       return(as.numeric(dens_ppp_sim))
@@ -325,8 +331,12 @@ KDS_filt2 <- function(sim_pattern,
       ywin_sub <- range(sim_pattern$y)
       LM_sim_sub <- (xwin_sub[2] - xwin_sub[1]) * (ywin_sub[2] - ywin_sub[1])
       dat_ppp_sub <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
-      dens_ppp <- tryCatch(density(x = dat_ppp_sub, sigma = bw_method,
-                                   edge = T, diggle = T, leaveoneout = T, at = 'points'),
+      dens_ppp <- tryCatch(density(x = dat_ppp_sub,
+                                   sigma = bw_method,
+                                   edge = edge_correct,
+                                   diggle = edge_correct,
+                                   leaveoneout = T,
+                                   at = 'points'),
                            error = function(e){return(NA)})
       if(any(is.na(dens_ppp))){
         return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
@@ -344,8 +354,8 @@ KDS_filt2 <- function(sim_pattern,
         dat_ppp_sim = spatstat::ppp(sim_pts_sim$x, sim_pts_sim$y, owin(xwin, ywin))
         dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
                                              sigma = sigma2,
-                                             edge = T,
-                                             diggle = T,
+                                             edge = edge_correct,
+                                             diggle = edge_correct,
                                              leaveoneout = T,
                                              at = 'points')
         return(as.numeric(dens_ppp_sim))
