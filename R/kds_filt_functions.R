@@ -238,11 +238,11 @@ KDS_filt2 <- function(sim_pattern,
 
 
       sim_pattern$dens_d <- as.numeric(spatstat::density.ppp(x = dat_ppp_sub,
-                                               sigma = sigma2,
-                                               edge = edge_correct,
-                                               diggle = edge_correct,
-                                               leaveoneout = T,
-                                               at = 'points'))
+                                                             sigma = sigma2,
+                                                             edge = edge_correct,
+                                                             diggle = edge_correct,
+                                                             leaveoneout = T,
+                                                             at = 'points'))
 
 
       res_sim = do.call(c, lapply(1:n_sim_data, FUN = function(i){
@@ -280,6 +280,12 @@ KDS_filt2 <- function(sim_pattern,
     else if(bw_method_c == 'bw.diggle'){
       bw_method <- bw.diggle
     }
+    else if(bw_method_c == 'bw.scott'){
+      bw_method <- bw.scott
+    }
+    else if(bw_method_c == 'bw.scott.iso'){
+      bw_method <- bw.scott.iso
+    }
     else{
       bw_method <- bw.CvL
     }
@@ -288,17 +294,19 @@ KDS_filt2 <- function(sim_pattern,
     n_pts_orig <- n_pts
     dat_ppp <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
     dens_ppp <- tryCatch(spatstat::density.ppp(x = dat_ppp,
-                                 sigma = bw_method,
-                                 edge = edge_correct,
-                                 diggle = edge_correct,
-                                 leaveoneout = T,
-                                 at = 'points'),
+                                               sigma = bw_method,
+                                               edge = edge_correct,
+                                               diggle = edge_correct,
+                                               leaveoneout = T,
+                                               at = 'points'),
                          error = function(e){return(NA)})
     if(any(is.na(dens_ppp))){
       return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
     }
-    sigma2 <- attributes(dens_ppp)$sigma
-    if(bw_method_c == "bw.CvL"){
+    if(bw_method_c == 'bw.scott'){
+      sigma2 <- attributes(dens_ppp)$varcov
+    }
+    else{
       sigma2 <- attributes(dens_ppp)$sigma
     }
     sim_pattern$dens_d <- as.numeric(dens_ppp)
@@ -307,12 +315,22 @@ KDS_filt2 <- function(sim_pattern,
       sim_pts_sim = data.frame(x = runif(n = n_pts, min = xwin[1], max = xwin[2]),
                                y = runif(n = n_pts, min = ywin[1], max = ywin[2]))
       dat_ppp_sim = spatstat::ppp(sim_pts_sim$x, sim_pts_sim$y, owin(xwin, ywin))
-      dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
-                                           sigma = sigma2,
-                                           edge = edge_correct,
-                                           diggle = edge_correct,
-                                           leaveoneout = T,
-                                           at = 'points')
+      if(bw_method_c == 'bw.scott'){
+        dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
+                                             varcov = sigma2,
+                                             edge = edge_correct,
+                                             diggle = edge_correct,
+                                             leaveoneout = T,
+                                             at = 'points')
+      }
+      else{
+        dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
+                                             sigma = sigma2,
+                                             edge = edge_correct,
+                                             diggle = edge_correct,
+                                             leaveoneout = T,
+                                             at = 'points')
+      }
       return(as.numeric(dens_ppp_sim))
     }))
 
@@ -332,17 +350,19 @@ KDS_filt2 <- function(sim_pattern,
       LM_sim_sub <- (xwin_sub[2] - xwin_sub[1]) * (ywin_sub[2] - ywin_sub[1])
       dat_ppp_sub <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
       dens_ppp <- tryCatch(spatstat::density.ppp(x = dat_ppp_sub,
-                                   sigma = bw_method,
-                                   edge = edge_correct,
-                                   diggle = edge_correct,
-                                   leaveoneout = T,
-                                   at = 'points'),
+                                                 sigma = bw_method,
+                                                 edge = edge_correct,
+                                                 diggle = edge_correct,
+                                                 leaveoneout = T,
+                                                 at = 'points'),
                            error = function(e){return(NA)})
       if(any(is.na(dens_ppp))){
         return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
       }
-      sigma2 <- attributes(dens_ppp)$sigma
-      if(bw_method_c == "bw.CvL"){
+      if(bw_method_c == 'bw.scott'){
+        sigma2 <- attributes(dens_ppp)$varcov
+      }
+      else{
         sigma2 <- attributes(dens_ppp)$sigma
       }
 
@@ -352,12 +372,22 @@ KDS_filt2 <- function(sim_pattern,
         sim_pts_sim = data.frame(x = runif(n = n_pts, min = xwin[1], max = xwin[2]),
                                  y = runif(n = n_pts, min = ywin[1], max = ywin[2]))
         dat_ppp_sim = spatstat::ppp(sim_pts_sim$x, sim_pts_sim$y, owin(xwin, ywin))
-        dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
-                                             sigma = sigma2,
-                                             edge = edge_correct,
-                                             diggle = edge_correct,
-                                             leaveoneout = T,
-                                             at = 'points')
+        if(bw_method_c == 'bw.scott'){
+          dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
+                                               varcov = sigma2,
+                                               edge = edge_correct,
+                                               diggle = edge_correct,
+                                               leaveoneout = T,
+                                               at = 'points')
+        }
+        else{
+          dens_ppp_sim = spatstat::density.ppp(x = dat_ppp_sim,
+                                               sigma = sigma2,
+                                               edge = edge_correct,
+                                               diggle = edge_correct,
+                                               leaveoneout = T,
+                                               at = 'points')
+        }
         return(as.numeric(dens_ppp_sim))
       }))
 
@@ -473,6 +503,12 @@ KDS_filt_pix <- function(sim_pattern,
     }
     else if(bw_method_c == 'bw.diggle'){
       bw_method <- bw.diggle
+    }
+    else if(bw_method_c == 'bw.scott'){
+      bw_method <- bw.scott
+    }
+    else if(bw_method_c == 'bw.scott.iso'){
+      bw_method <- bw.scott.iso
     }
     else{
       bw_method <- bw.CvL
@@ -623,11 +659,11 @@ KDS_filt2_pix <- function(sim_pattern,
 
 
       sim_pattern$dens_d <- as.numeric(spatstat::density.ppp(x = dat_ppp_sub,
-                                               sigma = sigma2,
-                                               edge = edge_correct,
-                                               diggle = edge_correct,
-                                               leaveoneout = T,
-                                               at = 'points'))
+                                                             sigma = sigma2,
+                                                             edge = edge_correct,
+                                                             diggle = edge_correct,
+                                                             leaveoneout = T,
+                                                             at = 'points'))
 
 
       res_sim = do.call(c, lapply(1:n_sim_data, FUN = function(i){
@@ -666,6 +702,12 @@ KDS_filt2_pix <- function(sim_pattern,
     else if(bw_method_c == 'bw.diggle'){
       bw_method <- bw.diggle
     }
+    else if(bw_method_c == 'bw.scott'){
+      bw_method <- bw.scott
+    }
+    else if(bw_method_c == 'bw.scott.iso'){
+      bw_method <- bw.scott.iso
+    }
     else{
       bw_method <- bw.CvL
     }
@@ -676,28 +718,42 @@ KDS_filt2_pix <- function(sim_pattern,
     n_pts_orig <- n_pts
     dat_ppp <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
     dens_ppp <- tryCatch(spatstat::density.ppp(x = dat_ppp,
-                                 sigma = bw_method,
-                                 edge = edge_correct,
-                                 diggle = edge_correct,
-                                 leaveoneout = T,
-                                 at = 'points'),
+                                               sigma = bw_method,
+                                               edge = edge_correct,
+                                               diggle = edge_correct,
+                                               leaveoneout = T,
+                                               at = 'points'),
                          error = function(e){return(NA)})
     if(any(is.na(dens_ppp))){
       return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
     }
-    sigma2 <- attributes(dens_ppp)$sigma
-
+    if(bw_method_c == 'bw.scott'){
+      sigma2 <- attributes(dens_ppp)$varcov
+    }
+    else{
+      sigma2 <- attributes(dens_ppp)$sigma
+    }
     sim_pattern$dens_d <- as.numeric(dens_ppp)
 
     res_sim = do.call(c, lapply(1:n_sim_data, FUN = function(i){
       sim_pts_sub = all_points[sample(1:nrow(all_points), size = n_pts, replace = F), ]
       dat_ppp_sub = spatstat::ppp(sim_pts_sub[, 1], sim_pts_sub[, 2], owin(xwin, ywin))
-      dens_ppp_sub = spatstat::density.ppp(x = dat_ppp_sub,
-                                           sigma = sigma2,
-                                           edge = edge_correct,
-                                           diggle = edge_correct,
-                                           leaveoneout = T,
-                                           at = 'points')
+      if(bw_method_c == 'bw.scott'){
+        dens_ppp_sub = spatstat::density.ppp(x = dat_ppp_sub,
+                                             varcov = sigma2,
+                                             edge = edge_correct,
+                                             diggle = edge_correct,
+                                             leaveoneout = T,
+                                             at = 'points')
+      }
+      else{
+        dens_ppp_sub = spatstat::density.ppp(x = dat_ppp_sub,
+                                             sigma = sigma2,
+                                             edge = edge_correct,
+                                             diggle = edge_correct,
+                                             leaveoneout = T,
+                                             at = 'points')
+      }
       return(as.numeric(dens_ppp_sub))
     }))
 
@@ -717,28 +773,43 @@ KDS_filt2_pix <- function(sim_pattern,
       LM_sim_sub <- (xwin_sub[2] - xwin_sub[1]) * (ywin_sub[2] - ywin_sub[1])
       dat_ppp_sub <- spatstat::ppp(sim_pattern$x, sim_pattern$y, owin(xwin, ywin))
       dens_ppp <- tryCatch(spatstat::density.ppp(x = dat_ppp_sub,
-                                   sigma = bw_method,
-                                   edge = edge_correct,
-                                   diggle = edge_correct,
-                                   leaveoneout = T,
-                                   at = 'points'),
+                                                 sigma = bw_method,
+                                                 edge = edge_correct,
+                                                 diggle = edge_correct,
+                                                 leaveoneout = T,
+                                                 at = 'points'),
                            error = function(e){return(NA)})
       if(any(is.na(dens_ppp))){
         return(sim_pattern_full %>% dplyr::mutate(type = 'noise'))
       }
-      sigma2 <- attributes(dens_ppp)$sigma
+      if(bw_method_c == 'bw.scott'){
+        sigma2 <- attributes(dens_ppp)$varcov
+      }
+      else{
+        sigma2 <- attributes(dens_ppp)$sigma
+      }
 
       sim_pattern$dens_d <- as.numeric(dens_ppp)
 
       res_sim = do.call(c, lapply(1:n_sim_data, FUN = function(i){
         sim_pts_sub = all_points[sample(1:nrow(all_points), size = n_pts, replace = F), ]
         dat_ppp_sub = spatstat::ppp(sim_pts_sub[, 1], sim_pts_sub[, 2], owin(xwin, ywin))
-        dens_ppp_sub = spatstat::density.ppp(x = dat_ppp_sub,
-                                             sigma = sigma2,
-                                             edge = edge_correct,
-                                             diggle = edge_correct,
-                                             leaveoneout = T,
-                                             at = 'points')
+        if(bw_method_c == 'bw.scott'){
+          dens_ppp_sub = spatstat::density.ppp(x = dat_ppp_sub,
+                                               varcov = sigma2,
+                                               edge = edge_correct,
+                                               diggle = edge_correct,
+                                               leaveoneout = T,
+                                               at = 'points')
+        }
+        else{
+          dens_ppp_sub = spatstat::density.ppp(x = dat_ppp_sub,
+                                               sigma = sigma2,
+                                               edge = edge_correct,
+                                               diggle = edge_correct,
+                                               leaveoneout = T,
+                                               at = 'points')
+        }
         return(as.numeric(dens_ppp_sub))
       }))
 
