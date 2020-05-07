@@ -4,10 +4,10 @@
 \alias{sncp_bdmcmc_smooth}
 \title{Bayesian SNCP fit using BD-MCMC with informative proposal surface}
 \usage{
-sncp_bdmcmc_smooth(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta,
-  n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data,
-  var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events,
-  max_bd_vt, sigma_smooth = 100)
+sncp_bdmcmc_smooth(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha,
+  beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, lung_data,
+  var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent,
+  max_bd_events, max_bd_vt, sigma_smooth = 100)
 }
 \arguments{
 \item{obs_points}{matrix of coordinates for observed points}
