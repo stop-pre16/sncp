@@ -4,7 +4,8 @@
 \name{sim_data}
 \alias{sim_data}
 \title{Simulated point pattern and associated model parameters for fitting SNCP to}
-\format{A list with 11 components:
+\format{
+A list with 11 components:
 \describe{
   \item{centers}{Data frame with x and y coordinates for true cluster center locations}
   \item{logAlphas}{Vector of true values of log(alpha) associated with each center (i.e. log of expected number of pixels in each cluster)}
@@ -17,7 +18,8 @@
   \item{muAlpha}{Actual value for muAlpha used in this simulated data set (i.e. mean of normal distribution from which the log(alpha)'s were drawn from)}
   \item{varAlpha}{Variance of normal distribution from which the log(alpha)'s were drawn from}
 
-}}
+}
+}
 \usage{
 sim_data
 }

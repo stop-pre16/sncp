@@ -4,12 +4,14 @@
 \name{boundry_total}
 \alias{boundry_total}
 \title{Boundry pixels of the lung in an example axial slice from a CT scan.}
-\format{A data frame with 614 rows and 2 variables:
+\format{
+A data frame with 614 rows and 2 variables:
 \describe{
   \item{x}{x coordinate}
   \item{y}{y coordinate}
   ...
-}}
+}
+}
 \usage{
 boundry_total
 }

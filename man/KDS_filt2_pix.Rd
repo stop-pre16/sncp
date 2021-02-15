@@ -4,8 +4,15 @@
 \alias{KDS_filt2_pix}
 \title{Function to do KDS-Filt using random draws for number of points}
 \usage{
-KDS_filt2_pix(sim_pattern, all_points, bw_method_c = "bw.ppl",
-  thresh = 0.5, n_sim_data = 20, edge_correct = T)
+KDS_filt2_pix(
+  sim_pattern,
+  all_points,
+  bw_method_c = "bw.ppl",
+  thresh = 0.5,
+  n_sim_data = 20,
+  con_hull = F,
+  edge_correct = T
+)
 }
 \arguments{
 \item{sim_pattern}{Data frame with standard long format CT info for just diseased tissue}

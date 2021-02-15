@@ -4,12 +4,14 @@
 \name{lung_data}
 \alias{lung_data}
 \title{All pixels of lung tissue in an example axial slice from a CT scan.}
-\format{A data frame with 25,473 rows and 2 variables:
+\format{
+A data frame with 25,473 rows and 2 variables:
 \describe{
   \item{x}{x coordinate}
   \item{y}{y coordinate}
   ...
-}}
+}
+}
 \usage{
 lung_data
 }

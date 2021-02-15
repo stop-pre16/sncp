@@ -1,7 +1,7 @@
 Package: sncp
 Type: Package
 Title: BD-MCMC Functions to fit SNCP Models
-Version: 0.1.5
+Version: 0.1.53
 Author: Brian Vestal
 Maintainer: Brian Vestal <vestalb@njhealth.org>
 Description: Functions for fitting SNCP's using Birth-Death MCMC
@@ -10,11 +10,7 @@ Encoding: UTF-8
 Imports: Rcpp (>= 0.12.09)
 LinkingTo: Rcpp,
           RcppArmadillo
-<<<<<<< HEAD
-RoxygenNote: 6.1.0
-=======
-RoxygenNote: 6.1.1
->>>>>>> 21679c9fe4fdb6797b05eb6da4079dbd9e60707e
+RoxygenNote: 7.1.0
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
