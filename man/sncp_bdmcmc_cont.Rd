@@ -15,8 +15,8 @@ sncp_bdmcmc_cont(
   df_iw_prior,
   df_iw_prop,
   sigma_prior,
-  xwin,
-  ywin,
+  obs_window,
+  LM,
   var_mu_alpha,
   pen_dist,
   pen_val,
@@ -47,10 +47,6 @@ sncp_bdmcmc_cont(
 
 \item{sigma_prior}{prior for dispersion matrices sigma}
 
-\item{xwin}{vector that has the min and max x values of the observation window}
-
-\item{ywin}{vector that has the min and max y values of the observation window}
-
 \item{var_mu_alpha}{prior variance on mu_alpha}
 
 \item{pen_dist}{distance for strauss process repulsion}
@@ -64,6 +60,10 @@ sncp_bdmcmc_cont(
 \item{max_bd_events}{max events (births + deaths) to allow at each iteration of BD-MCMC}
 
 \item{max_bd_vt}{max ammount of virtual time to spend in BD process at each BD_MCMC iteration}
+
+\item{xwin}{vector that has the min and max x values of the observation window}
+
+\item{ywin}{vector that has the min and max y values of the observation window}
 }
 \value{
 Returns a named list containing posterior samples of model parameters with the following elements:

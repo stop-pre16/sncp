@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // sncp_bdmcmc
 Rcpp::List sncp_bdmcmc(arma::mat obs_points, double mean_mu_alpha, double sd_log_alpha, double sd_prop_alpha, double beta, int n_it, double window_hw, int df_iw_prior, int df_iw_prop, arma::mat sigma_prior, arma::mat lung_data, double var_mu_alpha, double pen_dist, double pen_val, int n_cent_init, double prior_n_cent, int max_bd_events, double max_bd_vt);
 RcppExport SEXP _sncp_sncp_bdmcmc(SEXP obs_pointsSEXP, SEXP mean_mu_alphaSEXP, SEXP sd_log_alphaSEXP, SEXP sd_prop_alphaSEXP, SEXP betaSEXP, SEXP n_itSEXP, SEXP window_hwSEXP, SEXP df_iw_priorSEXP, SEXP df_iw_propSEXP, SEXP sigma_priorSEXP, SEXP lung_dataSEXP, SEXP var_mu_alphaSEXP, SEXP pen_distSEXP, SEXP pen_valSEXP, SEXP n_cent_initSEXP, SEXP prior_n_centSEXP, SEXP max_bd_eventsSEXP, SEXP max_bd_vtSEXP) {
@@ -35,8 +40,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sncp_bdmcmc_cont
-Rcpp::List sncp_bdmcmc_cont(arma::mat obs_points, double mean_mu_alpha, double sd_log_alpha, double sd_prop_alpha, double beta, int n_it, double window_hw, int df_iw_prior, int df_iw_prop, arma::mat sigma_prior, arma::vec xwin, arma::vec ywin, double var_mu_alpha, double pen_dist, double pen_val, int n_cent_init, double prior_n_cent, int max_bd_events, double max_bd_vt);
-RcppExport SEXP _sncp_sncp_bdmcmc_cont(SEXP obs_pointsSEXP, SEXP mean_mu_alphaSEXP, SEXP sd_log_alphaSEXP, SEXP sd_prop_alphaSEXP, SEXP betaSEXP, SEXP n_itSEXP, SEXP window_hwSEXP, SEXP df_iw_priorSEXP, SEXP df_iw_propSEXP, SEXP sigma_priorSEXP, SEXP xwinSEXP, SEXP ywinSEXP, SEXP var_mu_alphaSEXP, SEXP pen_distSEXP, SEXP pen_valSEXP, SEXP n_cent_initSEXP, SEXP prior_n_centSEXP, SEXP max_bd_eventsSEXP, SEXP max_bd_vtSEXP) {
+Rcpp::List sncp_bdmcmc_cont(arma::mat obs_points, double mean_mu_alpha, double sd_log_alpha, double sd_prop_alpha, double beta, int n_it, double window_hw, int df_iw_prior, int df_iw_prop, arma::mat sigma_prior, arma::mat obs_window, double LM, double var_mu_alpha, double pen_dist, double pen_val, int n_cent_init, double prior_n_cent, int max_bd_events, double max_bd_vt);
+RcppExport SEXP _sncp_sncp_bdmcmc_cont(SEXP obs_pointsSEXP, SEXP mean_mu_alphaSEXP, SEXP sd_log_alphaSEXP, SEXP sd_prop_alphaSEXP, SEXP betaSEXP, SEXP n_itSEXP, SEXP window_hwSEXP, SEXP df_iw_priorSEXP, SEXP df_iw_propSEXP, SEXP sigma_priorSEXP, SEXP obs_windowSEXP, SEXP LMSEXP, SEXP var_mu_alphaSEXP, SEXP pen_distSEXP, SEXP pen_valSEXP, SEXP n_cent_initSEXP, SEXP prior_n_centSEXP, SEXP max_bd_eventsSEXP, SEXP max_bd_vtSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -50,8 +55,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type df_iw_prior(df_iw_priorSEXP);
     Rcpp::traits::input_parameter< int >::type df_iw_prop(df_iw_propSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type sigma_prior(sigma_priorSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type xwin(xwinSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type ywin(ywinSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type obs_window(obs_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type LM(LMSEXP);
     Rcpp::traits::input_parameter< double >::type var_mu_alpha(var_mu_alphaSEXP);
     Rcpp::traits::input_parameter< double >::type pen_dist(pen_distSEXP);
     Rcpp::traits::input_parameter< double >::type pen_val(pen_valSEXP);
@@ -59,7 +64,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type prior_n_cent(prior_n_centSEXP);
     Rcpp::traits::input_parameter< int >::type max_bd_events(max_bd_eventsSEXP);
     Rcpp::traits::input_parameter< double >::type max_bd_vt(max_bd_vtSEXP);
-    rcpp_result_gen = Rcpp::wrap(sncp_bdmcmc_cont(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, xwin, ywin, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt));
+    rcpp_result_gen = Rcpp::wrap(sncp_bdmcmc_cont(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, obs_window, LM, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -235,6 +240,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fastPdist2
+arma::mat fastPdist2(arma::mat A, arma::mat B);
+RcppExport SEXP _sncp_fastPdist2(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type A(ASEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(fastPdist2(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_sncp_sncp_bdmcmc", (DL_FUNC) &_sncp_sncp_bdmcmc, 18},
@@ -245,6 +262,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sncp_sncp_bdmcmc_unif", (DL_FUNC) &_sncp_sncp_bdmcmc_unif, 18},
     {"_sncp_sncp_mcmc_cont2", (DL_FUNC) &_sncp_sncp_mcmc_cont2, 19},
     {"_sncp_sncp_mcmc_cont_fixed", (DL_FUNC) &_sncp_sncp_mcmc_cont_fixed, 19},
+    {"_sncp_fastPdist2", (DL_FUNC) &_sncp_fastPdist2, 2},
     {NULL, NULL, 0}
 };
 

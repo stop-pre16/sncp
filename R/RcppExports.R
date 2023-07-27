@@ -90,8 +90,8 @@ sncp_bdmcmc <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, 
 #' }
 #'
 #' @export
-sncp_bdmcmc_cont <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, xwin, ywin, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt) {
-    .Call(`_sncp_sncp_bdmcmc_cont`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, xwin, ywin, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt)
+sncp_bdmcmc_cont <- function(obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, obs_window, LM, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt) {
+    .Call(`_sncp_sncp_bdmcmc_cont`, obs_points, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, obs_window, LM, var_mu_alpha, pen_dist, pen_val, n_cent_init, prior_n_cent, max_bd_events, max_bd_vt)
 }
 
 #' Bayesian SNCP fit using BD-MCMC
@@ -369,5 +369,26 @@ sncp_mcmc_cont2 <- function(obs_points, centers, mean_mu_alpha, sd_log_alpha, sd
 #' @export
 sncp_mcmc_cont_fixed <- function(obs_points, centers, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, xwin, ywin, var_mu_alpha, pen_dist, pen_val, prior_n_cent, max_bd_events, max_bd_vt) {
     .Call(`_sncp_sncp_mcmc_cont_fixed`, obs_points, centers, mean_mu_alpha, sd_log_alpha, sd_prop_alpha, beta, n_it, window_hw, df_iw_prior, df_iw_prop, sigma_prior, xwin, ywin, var_mu_alpha, pen_dist, pen_val, prior_n_cent, max_bd_events, max_bd_vt)
+}
+
+#' Fast p-dist2 function
+#'
+#' Run p-dist
+#'
+#' This is where you write details on the function...
+#'
+#' more details....
+#'
+#' @param A matrix of points
+#' @param B matrix of points
+#'
+#' @author Brian Vestal
+#'
+#' @return
+#' Returns a matrix with distances
+#'
+#' @export
+fastPdist2 <- function(A, B) {
+    .Call(`_sncp_fastPdist2`, A, B)
 }
 
